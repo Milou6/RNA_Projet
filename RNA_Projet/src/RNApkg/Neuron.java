@@ -60,7 +60,7 @@ class RegularNeuron extends Neuron {
 class BiasNeuron extends Neuron {
 	
 	public BiasNeuron() {
-		super("sigmoid", 1.0);
+		super("sigmoid", 0.01);
 		
 	}
 }

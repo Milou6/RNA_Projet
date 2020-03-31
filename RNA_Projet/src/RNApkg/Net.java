@@ -34,12 +34,16 @@ import org.jfree.data.xy.*;
 public class Net {
 	ArrayList<Layer> layers;
 	DataBase netDataBase;
+	ArrayList<ArrayList<RealMatrix>> batchActivations;
+	ArrayList<ArrayList<RealMatrix>> batchErrors;
 	ArrayList<Double> networkError;
 	
 	//Constructeur
 	public Net() {
 		this.layers = new ArrayList<Layer>();
 		this.netDataBase = new DataBase(this);
+		this.batchActivations = new ArrayList<ArrayList<RealMatrix>>();
+		this.batchErrors = new ArrayList<ArrayList<RealMatrix>>();
 		this.networkError = new ArrayList<Double>();
 	}
 	
@@ -54,13 +58,41 @@ public class Net {
 		}
 	}
 	
+	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
+	 */
+	private void errorGraph() {
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series1 = new XYSeries("RNA_error", false, true);
+		
+		for (int i=0; i<networkError.size()-1; i++) {
+			series1.add(i, networkError.get(i));
+		}
+		dataset.addSeries(series1);
+		
+		
+		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "Epoch", "Error", dataset, PlotOrientation.VERTICAL, true, true, false);		
+//		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "error", "Epoch", dataset, "horizontal", false, false, false);
+		
+		chart.createBufferedImage(600, 600);
+		
+		JPanel jPanel1 = new JPanel();
+		jPanel1.setLayout(new java.awt.BorderLayout());
+		ChartPanel CP = new ChartPanel(chart);
+		jPanel1.add(CP,BorderLayout.CENTER);
+		jPanel1.validate();
+		
+		 JFrame frame = new JFrame();
+		 frame.add(jPanel1); 
+		 frame.setSize(300, 300); 
+	     frame.show(); 
+	}
+	
 	
 	/* Retourne le Hadamard product de 2 matrices.
 	 * (multiplication élément-par-élément)
 	 */
 	public static RealMatrix hadamardProduct(RealMatrix m1, RealMatrix m2) {
-		RealMatrix result = new Array2DRowRealMatrix(new double[m1.getRowDimension()][m1.getColumnDimension()]);
-		
+		RealMatrix result = new Array2DRowRealMatrix(new double[m1.getRowDimension()][m1.getColumnDimension()]);		
 		for (int i=0; i<m1.getRowDimension(); i++) {
 			for (int j=0; j<m1.getColumnDimension(); j++) {
 				result.setEntry(i, j, (m1.getEntry(i, j) * m2.getEntry(i, j)) );
@@ -168,20 +200,35 @@ public class Net {
 	 * int epochs : nombre d'itérations sur la totalité des données d'entraînement
 	 */
 	public void train(double[][] x_test, double[][] y_test, int epochs, double learning_rate) {
+		
+		// Test: vérifie que x_test et y_test ont la même taille
+		if (x_test.length != y_test.length) {
+			throw new ArrayIndexOutOfBoundsException("Input data and Label lengths do not match.");
+		}
+		// Test: vérifie que l'InputLayer et x_test sont compatibles
+		int number_of_input_neurons = layers.get(0).layerSize;
+		if (layers.get(0).hasBiasNeuron == true) {number_of_input_neurons -= 1;}
+		if ( number_of_input_neurons != x_test[0].length) {
+			throw new ArrayIndexOutOfBoundsException(String.format("Input entries are of length %d and InputLayer has %d input neuron(s)", x_test[0].length, number_of_input_neurons));
+		}
+		// Test: vérifie que l'OututLayer et y_test sont compatibles
+		if (y_test[0].length != layers.get(layers.size()-1).layerSize) {
+			throw new ArrayIndexOutOfBoundsException(String.format("Output data is of length %d and OutputLayer has %d neuron(s)", y_test[0].length, layers.get(layers.size()-1).layerSize));
+		}
+		
+		
 		//On initialise l'objet DataBase, ainsi que les matrices de poids et activations de l'objet
 		DataBase dataBase = this.netDataBase;
 		initializeWeights();
 		initializeActivations();
 		initializeWeightedInputs();
 		initializeLayerError();
-		
-//		this.print();
-//		this.netDataBase.print();
-		
-		int print_int = 1;
+
+
 		//Boucle des Epochs
 		for (int e=0; e<epochs; e++) {
-			ArrayList<RealMatrix> batch_errors = new ArrayList<RealMatrix>();
+			this.batchErrors.clear();
+			this.batchActivations.clear();
 			
 			// Boucle des Batch (chaque Batch correspond à une propagation en avant pour chaque entrée des données d'Input) 
 			for (int f=0; f<x_test.length; f++) {
@@ -198,54 +245,50 @@ public class Net {
 				for (Layer l : this.layers) {
 					l.forwardPropagate(x_test);
 				}
-
-//				this.print();
-//				this.netDataBase.print();
-				
-//				System.out.println("trace");
-				//Calculer l'erreur moyenne (de tous les données du Batch!) entre output du RNA / output réel
-//				RealMatrix output_error = computeOutputError(y_test[f]);
 				computeOutputError(y_test[f]);
-//				batch_errors.add(f, output_error);
-				
-				this.networkError.add(netDataBase.layerError.get(netDataBase.layerError.size()-1).getEntry(0, 0));
-
-
 				backPropagateError();
-//				netDataBase.print();
+				
+
+				//On garde les erreurs et les activations du RNA pour chaque x du Batch
+				//On crée des variables "temp" pour éviter de faire des shallow_copy
+				ArrayList<RealMatrix> temp_batch_errors = new ArrayList<>(netDataBase.layerError);
+//				ArrayList<RealMatrix> temp_batch_activations = new ArrayList<>(netDataBase.activations);
+				ArrayList<RealMatrix> temp_batch_activations = new ArrayList<RealMatrix>();
+				for (int i=0; i<netDataBase.activations.size(); i++) {
+					temp_batch_activations.add(i, netDataBase.activations.get(i).copy());
+				}
+				
+				
+				this.batchErrors.add(temp_batch_errors);
+				this.batchActivations.add(temp_batch_activations);
+
+//				updateNetworkWeights(x_test, learning_rate);
+				
+//				System.out.println(" \n EPOCH " + e + " ##############################################################################################");
 //				this.print();
 //				this.netDataBase.print();
 				
-				updateNetworkWeights(x_test, learning_rate);
-				
-				System.out.println(" Epoch " + e);
 //				System.out.println(Arrays.toString(y_test[f]));
 //				System.out.println(Arrays.deepToString(netDataBase.activations.get(netDataBase.activations.size()-1).getData()));
 //				System.out.println(netDataBase.layerError.get(netDataBase.layerError.size()-1));
-				//FORWARD-PROP ICI
+				
 
 			}
 			
-//			System.out.println("AFTER F-PROP :");
-//			this.print();
-//			System.out.println("\n BATCH ERRORS :");
-//			System.out.println(batch_errors);
+			// networkError utilisé pour faire le graph de l'erreur d'entraînement
+			double batch_error = 0.0;
+			for (int i=0; i<this.batchErrors.size(); i++) {
+				batch_error = batch_error + Math.abs(batchErrors.get(i).get(layers.size()-1).getEntry(0, 0));
+//				System.out.println(batch_error);
+			}
+			batch_error = batch_error / batchErrors.size();
+//			System.out.println(batch_error);
+			this.networkError.add(batch_error);
 			
-			//Ce bloc de code calcule dans output_error la moyenne de l'erreur de chaque élément du Batch
-//			RealMatrix output_error = batch_errors.get(0).copy();
-//			for (int i=1; i<batch_errors.size(); i++) {
-//				output_error = output_error.add(batch_errors.get(i));
-////				System.out.println(output_error);
-//			}
-//			output_error = output_error.scalarMultiply(1.0/batch_errors.size());
-//			System.out.println("ERROR UPDATE : ");
-//			System.out.println(output_error);
-//			netDataBase.layerError.set(netDataBase.layerError.size()-1, output_error);
 			
-//			backPropagateError();
-////		netDataBase.print();
-//			updateNetworkWeights(x_test, learning_rate);
-					
+			updateNetworkWeights(batchErrors, batchActivations, learning_rate);
+			
+			System.out.println(" \n EPOCH " + e );		
 		}//Epochs for-loop
 
 	}
@@ -373,8 +416,11 @@ public class Net {
 		
 		//right_member correspond à [sigmoid(z) * (1-sigmoid(z))]
 		RealMatrix right_member = netDataBase.activations.get(index).copy();
+		// (-sigmoid(z))
 		right_member = right_member.scalarMultiply(-1);
+		// (1-sigmoid(z))
 		right_member = right_member.scalarAdd(1);
+		// [sigmoid(z) * (1-sigmoid(z))]
 		right_member = hadamardProduct(right_member, netDataBase.activations.get(index).copy()) ;
 //		System.out.println(right_member);
 		
@@ -431,57 +477,173 @@ public class Net {
 	/*
 	 * Mets à jour les poids des RegularNeuron et des BiasNeuron.
 	 */
-	public void updateNetworkWeights(double[][] x_test, double learning_rate) {
-		// i :  2 and 1
+	public void updateNetworkWeights(ArrayList<ArrayList<RealMatrix>> batchErrors, ArrayList<ArrayList<RealMatrix>> batchActivations, double learning_rate) {
+		// i :  layers 2 and 1
+		
+		
+		//Pour Débugger
+//		for (ArrayList<RealMatrix> R : batchErrors) {
+//			for (RealMatrix M : R) {
+//				double[][] data = M.getData();
+//				System.out.println(Arrays.deepToString(data));
+//			}
+//		}
+		
+		
+		
 		for (int i=layers.size()-1; i>0; i--) {
 			
-			RealMatrix to_subtract = netDataBase.layerError.get(i).copy();
-			RealMatrix a_transpose = netDataBase.activations.get(i-1).copy();
+			RealMatrix sum = MatrixUtils.createRealMatrix(netDataBase.weights.get(i-1).getRowDimension(), netDataBase.weights.get(i-1).getColumnDimension());
 			if (layers.get(i-1).hasBiasNeuron == true) {
-				a_transpose = a_transpose.getSubMatrix(0, a_transpose.getRowDimension()-2, 0, a_transpose.getColumnDimension()-1);
+				sum = sum.getSubMatrix(0, sum.getRowDimension()-1, 0, sum.getColumnDimension()-2);
 			}
-//			System.out.println("\n UPDATE WEIGHT trace");
-//			System.out.println(a_transpose);
+//				double[][] data = sum.getData();
+//				System.out.println(Arrays.deepToString(data));
+
 			
-			to_subtract = to_subtract.multiply(a_transpose.transpose());
+			for (int j=0; j<batchErrors.size(); j++) {
+				RealMatrix current_batch_error = batchErrors.get(j).get(i).copy();
+				RealMatrix a_transpose = batchActivations.get(j).get(i-1).copy();
+				if (layers.get(i-1).hasBiasNeuron == true) {
+					a_transpose = a_transpose.getSubMatrix(0, a_transpose.getRowDimension()-2, 0, a_transpose.getColumnDimension()-1);
+				}
+
+//				System.out.println("current_batch_error : " + current_batch_error);
+//				System.out.println("a_transpose : " + a_transpose);
+				
+				RealMatrix error_transpose_product = current_batch_error.multiply(a_transpose.transpose());
+				sum = sum.add(error_transpose_product.copy());
+//				System.out.println("error_transpose_product : " + error_transpose_product);
+//				System.out.println("sum : " + sum);
+//				System.out.println("-");			
+			}
 			
-			to_subtract = to_subtract.scalarMultiply( (learning_rate/x_test.length) );
-//			System.out.println("to subtract : " + to_subtract);
+			sum = sum.scalarMultiply(learning_rate/batchErrors.size());
+			sum = sum.scalarMultiply(-1);
+
 			
-			RealMatrix updated_weights = netDataBase.weights.get(i-1).copy();
+			RealMatrix weights_to_update = netDataBase.weights.get(i-1).copy();
 			if (layers.get(i-1).hasBiasNeuron == true) {
-//				System.out.println("old weights : " + updated_weights);
-				updated_weights = updated_weights.getSubMatrix(0, updated_weights.getRowDimension()-1, 0, updated_weights.getColumnDimension()-2);
+				weights_to_update = weights_to_update.getSubMatrix(0, weights_to_update.getRowDimension()-1, 0, weights_to_update.getColumnDimension()-2);
 			}
-			updated_weights = updated_weights.subtract(to_subtract);
-			RealMatrix old_weights = netDataBase.weights.get(i-1);
-			old_weights.setSubMatrix(updated_weights.getData(), 0, 0);
-//			System.out.println("new weights : " + old_weights);
+//			System.out.println("old_weights : " + weights_to_update);
+			
+			weights_to_update = weights_to_update.add(sum);	
+			RealMatrix updated_weights = netDataBase.weights.get(i-1);
+
+			updated_weights.setSubMatrix(weights_to_update.copy().getData(), 0, 0);
+//			System.out.println("SUM : " + sum);
+//			System.out.println("updated_weights : " + updated_weights + "\n");
+			
 			netDataBase.sendWeightsToNeurons();
 		}
+		
+		
 		////////  UPDATE BIASES /////////////////////
+//		System.out.println("\n BIASES \n");
+		
+		
 		for (int i=layers.size()-1; i>-1; i--) {
 			if (layers.get(i).hasBiasNeuron == true) {
-//				System.out.println(i + " has bias");
-				RealMatrix to_subtract = netDataBase.layerError.get(i+1).copy();
-				to_subtract = to_subtract.scalarMultiply( (learning_rate/x_test.length) );
+				RealMatrix sum = MatrixUtils.createRealMatrix(netDataBase.layerError.get(i+1).getRowDimension(), netDataBase.layerError.get(i+1).getColumnDimension());
+	//			if (layers.get(i-1).hasBiasNeuron == true) {
+	//				sum = sum.getSubMatrix(0, sum.getRowDimension()-1, 0, sum.getColumnDimension()-2);
+	//			}
+	//				double[][] data = sum.getData();
+	//				System.out.println(Arrays.deepToString(data));
+	
 				
-				RealMatrix old_bias_matrix = netDataBase.weights.get(i).copy();
-				old_bias_matrix = old_bias_matrix.getSubMatrix(0, old_bias_matrix.getRowDimension()-1, old_bias_matrix.getColumnDimension()-1, old_bias_matrix.getColumnDimension()-1);
-//				System.out.println(old_bias_matrix);
+				for (int j=0; j<batchErrors.size(); j++) {
+					RealMatrix current_batch_error = batchErrors.get(j).get(i+1).copy();
+					
+//					System.out.println("current_batch_error : " + current_batch_error);
+	//				System.out.println("a_transpose : " + a_transpose);
+					
+					sum = sum.add(current_batch_error.copy());
+	//				System.out.println("error_transpose_product : " + error_transpose_product);
+//					System.out.println("sum : " + sum);
+	//				System.out.println("-");			
+				}
 				
-				RealMatrix new_bias_weights = old_bias_matrix.subtract(to_subtract);
+				sum = sum.scalarMultiply(learning_rate/batchErrors.size());
+				sum = sum.scalarMultiply(-1);
+//				System.out.println("SUM : " + sum);
+				
+				RealMatrix biases_to_update = netDataBase.weights.get(i).copy();
+				biases_to_update = biases_to_update.getSubMatrix(0, biases_to_update.getRowDimension()-1, biases_to_update.getColumnDimension()-1, biases_to_update.getColumnDimension()-1);
+//				System.out.println("old_biases : " + biases_to_update);
 				
 				
-				RealMatrix final_bias_weights = netDataBase.weights.get(i);
-//				System.out.println("old weights : " + final_bias_weights);
-//				System.out.println("Bias to subtract : " + to_subtract);
-				final_bias_weights.setSubMatrix(new_bias_weights.getData(), 0, final_bias_weights.getColumnDimension()-1);
-//				System.out.println("new bias weights : " + final_bias_weights);
+				biases_to_update = biases_to_update.add(sum);
+				
+				RealMatrix updated_biases = netDataBase.weights.get(i);
+				updated_biases.setSubMatrix(biases_to_update.getData(), 0, updated_biases.getColumnDimension()-1);
+				
+//				System.out.println("updated_biases : " + updated_biases);
+				
 				netDataBase.sendWeightsToNeurons();
-				
 			}
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+//		for (int i=layers.size()-1; i>0; i--) {	
+//			RealMatrix to_subtract = netDataBase.layerError.get(i).copy();
+//			RealMatrix a_transpose = netDataBase.activations.get(i-1).copy();
+//			if (layers.get(i-1).hasBiasNeuron == true) {
+//				a_transpose = a_transpose.getSubMatrix(0, a_transpose.getRowDimension()-2, 0, a_transpose.getColumnDimension()-1);
+//			}
+////			System.out.println("\n UPDATE WEIGHT trace");
+//			System.out.println("to_subtract" + to_subtract);
+//			System.out.println("a_transpose" + a_transpose);
+//			
+//			to_subtract = to_subtract.multiply(a_transpose.transpose());
+//			
+//			to_subtract = to_subtract.scalarMultiply( (learning_rate/4) );
+//			System.out.println("to subtract : " + to_subtract);
+//			
+//			RealMatrix updated_weights = netDataBase.weights.get(i-1).copy();
+//			if (layers.get(i-1).hasBiasNeuron == true) {
+//				System.out.println("old weights : " + updated_weights);
+//				updated_weights = updated_weights.getSubMatrix(0, updated_weights.getRowDimension()-1, 0, updated_weights.getColumnDimension()-2);
+//			}
+//			updated_weights = updated_weights.subtract(to_subtract);
+//			RealMatrix old_weights = netDataBase.weights.get(i-1);
+//			old_weights.setSubMatrix(updated_weights.getData(), 0, 0);
+//			System.out.println("new weights : " + old_weights);
+//			netDataBase.sendWeightsToNeurons();
+//			System.out.println("-");
+//		}
+		////////  UPDATE BIASES /////////////////////
+//		for (int i=layers.size()-1; i>-1; i--) {
+//			if (layers.get(i).hasBiasNeuron == true) {
+////				System.out.println(i + " has bias");
+//				RealMatrix to_subtract = netDataBase.layerError.get(i+1).copy();
+//				to_subtract = to_subtract.scalarMultiply( (learning_rate/x_test.length) );
+//				
+//				RealMatrix old_bias_matrix = netDataBase.weights.get(i).copy();
+//				old_bias_matrix = old_bias_matrix.getSubMatrix(0, old_bias_matrix.getRowDimension()-1, old_bias_matrix.getColumnDimension()-1, old_bias_matrix.getColumnDimension()-1);
+////				System.out.println(old_bias_matrix);
+//				
+//				RealMatrix new_bias_weights = old_bias_matrix.subtract(to_subtract);
+//				
+//				
+//				RealMatrix final_bias_weights = netDataBase.weights.get(i);
+////				System.out.println("old weights : " + final_bias_weights);
+////				System.out.println("Bias to subtract : " + to_subtract);
+//				final_bias_weights.setSubMatrix(new_bias_weights.getData(), 0, final_bias_weights.getColumnDimension()-1);
+////				System.out.println("new bias weights : " + final_bias_weights);
+//				netDataBase.sendWeightsToNeurons();
+//				
+//			}
+//		}
 		
 		
 	}
@@ -512,12 +674,12 @@ public class Net {
 //		final double [][] y_test = {{0}, {0}, {0}, {1}};
 		
 		// x au carré
-//		final int [][] x_test = {{1}, {3}, {12}, {11}, {2}, {4}};
-//		final int [][] y_test = {{1}, {9}, {144}, {121}, {4}, {16}};
+//		final double [][] x_test = {{1}, {3}, {12}, {11}, {2}, {4}};
+//		final double [][] y_test = {{1}, {9}, {144}, {121}, {4}, {16}};
 		
 		// nombre pair?
-//		final int [][] x_test = {{1}, {3}, {12}, {11}, {2}, {4}, {8}, {10}, {32}, {5}, {9}};
-//		final int [][] y_test = {{0}, {0}, {1}, {0}, {1}, {1}, {1}, {1}, {1}, {0}, {0}};
+//		final double [][] x_test = {{1}, {3}, {12}, {11}, {2}, {4}, {8}, {10}, {32}, {5}, {9}};
+//		final double [][] y_test = {{0}, {0}, {1}, {0}, {1}, {1}, {1}, {1}, {1}, {0}, {0}};
 		
 		
 		//Création d'un objet Net
@@ -533,45 +695,23 @@ public class Net {
 
 
 		
-		myNet.train(x_test, y_test,  2000, 2);	
+		myNet.train(x_test, y_test,  10000, 0.5);	
 //		generateMap(1);
 //		myNet.print();
 		
 		//TEMPORAIRE POUR TESTER		
 //		myNet.netDataBase.print();
 		
-//		double[] test = {0,,{0.4};
-//		System.out.println(myNet.predictSingle(test));
+		double[][] test = {{0,1}};
+		myNet.predict(test);
 /////
 
-		System.out.println(myNet.networkError);
+		myNet.print();
+		myNet.errorGraph();
 		
 
-		XYSeriesCollection dataset = new XYSeriesCollection();
-		XYSeries series1 = new XYSeries("Object 1", false, true);
-		
-		for (int i=0; i<myNet.networkError.size()-1; i++) {
-			series1.add(i, myNet.networkError.get(i));
-		}
-		dataset.addSeries(series1);
-		
-		
-		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "error", "Epoch", dataset, PlotOrientation.VERTICAL, true, true, false);		
-//		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "error", "Epoch", dataset, "horizontal", false, false, false);
-		
-		chart.createBufferedImage(600, 600);
-		
-		JPanel jPanel1 = new JPanel();
-		jPanel1.setLayout(new java.awt.BorderLayout());
-		ChartPanel CP = new ChartPanel(chart);
-		jPanel1.add(CP,BorderLayout.CENTER);
-		jPanel1.validate();
-		
-		 JFrame frame = new JFrame();
-		 frame.add(jPanel1); 
-		 frame.setSize(300, 300); 
-	     frame.show(); 
+
 	     
 // test commit
 	}
-}
+	}
