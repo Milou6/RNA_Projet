@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="lib/jfreechart.jar"/>
 	<classpathentry kind="lib" path="lib/jheatchart-0.6.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon.jar"/>
+	<classpathentry kind="lib" path="/Projet_RNA/miglayout15-swing.jar" sourcepath="/Projet_RNA/miglayout-src.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

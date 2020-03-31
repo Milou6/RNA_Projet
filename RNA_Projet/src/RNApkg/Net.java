@@ -2,20 +2,14 @@ package RNApkg;
 
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.apache.commons.math3.linear.*;
-import org.tc33.jheatchart.HeatChart;
 import org.jfree.chart.*;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.*;
 import org.jfree.data.xy.*;
 
 /* Classe de base du package.
@@ -47,7 +41,7 @@ public class Net {
 		this.networkError = new ArrayList<Double>();
 	}
 	
-	private void print() {
+	void print() {
 		System.out.println("\n NETWORK PRINT ( " + layers.size() + " layers )");
 		
 		for (Layer i : layers) {
@@ -60,7 +54,7 @@ public class Net {
 	
 	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
 	 */
-	private void errorGraph() {
+	public void errorGraph() {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		XYSeries series1 = new XYSeries("RNA_error", false, true);
 		
