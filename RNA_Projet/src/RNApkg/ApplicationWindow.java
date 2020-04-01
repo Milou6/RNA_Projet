@@ -10,6 +10,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -22,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -37,7 +39,7 @@ import javax.swing.ButtonGroup;
 public class ApplicationWindow {
 
 	private JFrame mainFrame;				// Fenetre principal
-	private TextArea txtConsoleOutput;		// Zone de Texte permettant d'afficher les sorties de la console
+	private static TextArea txtConsoleOutput;		// Zone de Texte permettant d'afficher les sorties de la console
 	private Net myNet;						// Objet Net représentant le résau de neurone artificiel créer
 	private Button btnAddLayer;				// Bouton d'ajouet de couche au résau
 	private Button btnPopLayer;				// Bouton pour retirer une couche du resau
@@ -51,6 +53,9 @@ public class ApplicationWindow {
 	private double [][] test;
 	private JPanel pnlAffichage;
 	private JLabel lblStartup;
+	
+	private LIMCouche coucheRNA;
+	
 //	private XYSeriesCollection dataset;
 	/**
 	 * Lancement de l'application
@@ -89,6 +94,9 @@ public class ApplicationWindow {
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.getContentPane().setLayout(new MigLayout("", "[grow][10px:n][fill]", "[50px:50px][50px:50px][50px:50px][50px:50px][50px:50px][50px:50px][10px:n,grow][grow]"));
 		
+		//===Liste des couches===
+		coucheRNA = new LIMCouche();
+		
 		//===Panneau d'affichage===
 		pnlAffichage = new JPanel();
 		mainFrame.getContentPane().add(pnlAffichage, "cell 0 0 1 6,grow");
@@ -110,21 +118,21 @@ public class ApplicationWindow {
 			 * voir au fond après la création de l'interface graphique
 			 */
 			public void actionPerformed(ActionEvent e) {
-				
+/*				
 				//On rajoute 3 layers à l'objet
 				myNet.addLayer("input", "sigmoid", 2, true);
 				myNet.addLayer("hidden", "sigmoid", 4, true);
 //				myNet.addLayer("hidden", "sigmoid", 4, true);
 //				myNet.addLayer("hidden", "sigmoid", 4, true);
 				myNet.addLayer("output", "sigmoid", 1, false);
-				
 				txtConsoleOutput.append("\n Création des couches efféctuées");
+*/
 				btnPopLayer.setEnabled(true);
 				btnImportData.setEnabled(true);
 				//btnPrint.setEnabled(true);
 
 				
-/*				
+				
 				//======Création du pop-up d'ajout de Layer======
 				//===Liste type de layer===
 				DefaultListModel<String> dlmLayer = new DefaultListModel<String>();
@@ -157,7 +165,7 @@ public class ApplicationWindow {
 				});
 				
 				//===Séléction du nombre de neurone de la couche===
-				// To do
+				JTextField txtNbrNeurone = new JTextField("1");
 				
 				//===radio bouton Neurone de biais
 				JRadioButton radNBiaisYes = new JRadioButton("Oui");				
@@ -173,19 +181,29 @@ public class ApplicationWindow {
 				        lstTypeLayer,
 				        new JLabel("Foction d'activation"),
 				        lstFonctActiv,
+				        new JLabel("Nbr de neurone"),
+				        txtNbrNeurone,
 				        new JLabel("Neurone de biais"),
 				        radNBiaisYes,radNBiaisNo
 				};
-				int result = JOptionPane.showConfirmDialog(null, inputs, "My custom dialog", JOptionPane.PLAIN_MESSAGE);
+				int result = JOptionPane.showConfirmDialog(null, inputs, "Add layer", JOptionPane.PLAIN_MESSAGE);
 				if (result == JOptionPane.OK_OPTION) {
-
-					System.out.println("Layer :" + lstTypeLayer.getSelectedValue() + " Activation :" + lstFonctActiv.getSelectedValue() + " Biais :" +  radNBiaisYes.isSelected() );
+					int nbrNeurone;
+					try {
+						nbrNeurone = Integer.parseInt(txtNbrNeurone.getText());
+					}
+					catch (NumberFormatException e1)
+					{
+						nbrNeurone = 0;
+					}
+					
+					Layer new_layer = myNet.addLayer(lstTypeLayer.getSelectedValue(), lstFonctActiv.getSelectedValue(), nbrNeurone, radNBiaisYes.isSelected());
+					coucheRNA.addLayer(new_layer);
+					txtConsoleOutput.append("\n Layer : " + lstTypeLayer.getSelectedValue() + " / Activation : " + lstFonctActiv.getSelectedValue() + " / Nombre de neurone : " + txtNbrNeurone.getText() + " / Biais :" +  radNBiaisYes.isSelected() );
 				} else {
 				    System.out.println("User canceled / closed the dialog, result = " + result);
 				}
-				
-				
-*/			
+											
 				btnPopLayer.setEnabled(true);
 				btnImportData.setEnabled(true);
 			}
@@ -196,8 +214,30 @@ public class ApplicationWindow {
 		btnPopLayer = new Button("popLayer");
 		btnPopLayer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				txtConsoleOutput.append("\n Bouton non fonctionnel");
+				//===Liste des Layers===
+				JList<Layer> lstLayers = new JList<Layer>(coucheRNA);
+				lstLayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+				lstLayers.setSelectedIndex(0);
+				lstLayers.addListSelectionListener(new ListSelectionListener() {
+					@Override
+					public void valueChanged(ListSelectionEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
 				
+				//JTextField firstName = new JTextField();
+				final JComponent[] inputs = new JComponent[] {
+				        new JLabel("Couche"),
+				        lstLayers
+				};
+				int result = JOptionPane.showConfirmDialog(null, inputs, "Pop Layer", JOptionPane.PLAIN_MESSAGE);
+				if (result == JOptionPane.OK_OPTION) {
+					System.out.println(result);
+					System.out.println("couche à supprimé : " + lstLayers.getSelectedValue().toString());
+				} else {
+				    System.out.println("User canceled / closed the dialog, result = " + result);
+				}
 			}
 		});
 		btnPopLayer.setEnabled(false);
@@ -291,8 +331,8 @@ public class ApplicationWindow {
 		btnPredict.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				final double [][] testDonne = {{0,1}};
-				test = testDonne;
-				myNet.predict(test);
+				test = testDonne;			
+				txtConsoleOutput.append(myNet.predict(test));
 			}
 		});
 		btnPredict.setEnabled(true);
@@ -306,9 +346,9 @@ public class ApplicationWindow {
 		btnPrint.setEnabled(true);
 		btnPrint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//txtConsoleOutput.append(myNet.print());
-				myNet.print();
-				myNet.errorGraph();
+				txtConsoleOutput.append(myNet.print());
+				//myNet.print();
+				//myNet.errorGraph();
 			}
 		});
 		mainFrame.getContentPane().add(btnPrint, "cell 2 5,grow");
@@ -321,12 +361,15 @@ public class ApplicationWindow {
 		txtConsoleOutput.setText("Sortie Console :");
 		mainFrame.getContentPane().add(txtConsoleOutput, "cell 0 7 3 1,grow");
 		
-		
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//===création du résaux de neurone===
 		myNet = new Net();
 		txtConsoleOutput.append("\n Résaux de neurone Créer");
 		
+	}
+	
+	public static void ConsoleOutputAppend (String newText) {
+		txtConsoleOutput.append(newText);
 	}
 }
 

@@ -11,6 +11,7 @@ import org.apache.commons.math3.linear.*;
 import org.jfree.chart.*;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.*;
+import RNApkg.ApplicationWindow;
 
 /* Classe de base du package.
  * 
@@ -41,15 +42,19 @@ public class Net {
 		this.networkError = new ArrayList<Double>();
 	}
 	
-	void print() {
-		System.out.println("\n NETWORK PRINT ( " + layers.size() + " layers )");
+	public String print() {
+		String impression;
+		
+		impression = "\n NETWORK PRINT ( " + layers.size() + " layers )";
 		
 		for (Layer i : layers) {
-			System.out.println("\n Layer " + layers.indexOf(i) + " :");
+			impression += "\n Layer " + layers.indexOf(i) + " :";
 			for (Neuron n : i.neurons) {
-				System.out.println(n);
+				impression+=n;
 			}
 		}
+		
+		return impression;
 	}
 	
 	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
@@ -129,7 +134,7 @@ public class Net {
 	 * 
 	 * boolean add_bias_neuron : Si true, rajoute un BiasNeuron comme dernier élément de la Layer
 	 */
-	public void addLayer(String layer_type, String layer_activation_function, int layer_size, boolean add_bias_neuron) {
+	public Layer addLayer(String layer_type, String layer_activation_function, int layer_size, boolean add_bias_neuron) {
 		Layer new_layer = new Layer(this, layer_activation_function);
 		//new_layer.parent = this;
 		//Switch instancie différents types de layer selon le paramètre
@@ -146,6 +151,7 @@ public class Net {
 		}
 		//On rajoute la layer vide à Net.layers
 		layers.add(new_layer);
+		
 		//On rajoute les neurones à la layer
 		for (int i=0; i<layer_size; i++) {
 			new_layer.addNeuron("regular");
@@ -155,10 +161,12 @@ public class Net {
 			new_layer.addNeuron("bias");
 			new_layer.hasBiasNeuron = true;
 		}
+		
+		return new_layer;
 	}
 
 	
-	public void predict(double[][] x_test) {
+	public String predict(double[][] x_test) {
 		double[] predicted = new double[x_test.length];
 		for (int f=0; f<x_test.length; f++) {
 //			for (int f=0; f<1; f++) {
@@ -176,8 +184,8 @@ public class Net {
 			}
 			predicted[f] = layers.get(layers.size()-1).neurons.get(0).activation;
 		}
-		System.out.println("PREDICTION: ");
-		System.out.println(Arrays.toString(predicted));
+		return "\n PREDICTION: " + Arrays.toString(predicted);
+		
 	}
 
 	
@@ -282,7 +290,9 @@ public class Net {
 			
 			updateNetworkWeights(batchErrors, batchActivations, learning_rate);
 			
-			System.out.println(" \n EPOCH " + e );		
+			// SUPER LENT => VOIR POUR AMELIORER
+//			ApplicationWindow.ConsoleOutputAppend(" \n EPOCH " + e );
+			//System.out.println(" \n EPOCH " + e );		
 		}//Epochs for-loop
 
 	}
