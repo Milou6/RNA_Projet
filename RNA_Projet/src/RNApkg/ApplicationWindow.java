@@ -10,8 +10,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.omg.CORBA.PUBLIC_MEMBER;
-
 import net.miginfocom.swing.MigLayout;
 
 import java.awt.Color;
@@ -104,7 +102,6 @@ public class ApplicationWindow {
 		
 		
 		lblStartup = new JLabel("Projet RNA");
-		lblStartup.setEnabled(false);
 		lblStartup.setFocusCycleRoot(true);
 		lblStartup.setFont(new Font("OCR A Extended", Font.BOLD, 54));
 		pnlAffichage.add(lblStartup, "cell 0 0");
@@ -320,6 +317,8 @@ public class ApplicationWindow {
 				pnlAffichage.add(CP);
 				pnlAffichage.validate();
 				
+				btnPredict.setEnabled(true);
+				btnPrint.setEnabled(true);
 			}
 		});
 		mainFrame.getContentPane().add(btnTrain, "cell 2 3,grow");
@@ -335,7 +334,7 @@ public class ApplicationWindow {
 				txtConsoleOutput.append(myNet.predict(test));
 			}
 		});
-		btnPredict.setEnabled(true);
+		btnPredict.setEnabled(false);
 		mainFrame.getContentPane().add(btnPredict, "cell 2 4,grow");
 		
 		
@@ -343,7 +342,7 @@ public class ApplicationWindow {
 		
 		//===Affichage===
 		btnPrint = new Button("print");
-		btnPrint.setEnabled(true);
+		btnPrint.setEnabled(false);
 		btnPrint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				txtConsoleOutput.append(myNet.print());
@@ -372,5 +371,6 @@ public class ApplicationWindow {
 		txtConsoleOutput.append(newText);
 	}
 }
+
 
 

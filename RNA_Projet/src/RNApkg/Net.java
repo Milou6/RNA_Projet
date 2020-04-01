@@ -11,7 +11,6 @@ import org.apache.commons.math3.linear.*;
 import org.jfree.chart.*;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.*;
-import RNApkg.ApplicationWindow;
 
 /* Classe de base du package.
  * 
@@ -59,6 +58,7 @@ public class Net {
 	
 	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
 	 */
+	@SuppressWarnings("deprecation")
 	public void errorGraph() {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		XYSeries series1 = new XYSeries("RNA_error", false, true);
@@ -220,6 +220,7 @@ public class Net {
 		
 		
 		//On initialise l'objet DataBase, ainsi que les matrices de poids et activations de l'objet
+		// database n'est jamais utilsé ? normal ?
 		DataBase dataBase = this.netDataBase;
 		initializeWeights();
 		initializeActivations();

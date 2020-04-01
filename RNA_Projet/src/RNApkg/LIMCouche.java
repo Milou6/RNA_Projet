@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import javax.swing.AbstractListModel;
 
+@SuppressWarnings("serial")// j'aime pas les triangles jaune
 public class LIMCouche extends AbstractListModel<Layer> {
 	private ArrayList<Layer> couches = new ArrayList<>();
 	
