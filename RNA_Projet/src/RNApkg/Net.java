@@ -2,20 +2,21 @@ package RNApkg;
 
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.io.File;
+
+//Pour la méthode importCSV()
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.apache.commons.math3.linear.*;
-import org.tc33.jheatchart.HeatChart;
 import org.jfree.chart.*;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.*;
 import org.jfree.data.xy.*;
 
 /* Classe de base du package.
@@ -47,20 +48,25 @@ public class Net {
 		this.networkError = new ArrayList<Double>();
 	}
 	
-	private void print() {
-		System.out.println("\n NETWORK PRINT ( " + layers.size() + " layers )");
+	public String print() {
+		String impression;
+		
+		impression = "\n NETWORK PRINT ( " + layers.size() + " layers )";
 		
 		for (Layer i : layers) {
-			System.out.println("\n Layer " + layers.indexOf(i) + " :");
+			impression += "\n Layer " + layers.indexOf(i) + " :";
 			for (Neuron n : i.neurons) {
-				System.out.println(n);
+				impression+=n;
 			}
 		}
+		
+		return impression;
 	}
 	
 	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
 	 */
-	private void errorGraph() {
+	@SuppressWarnings("deprecation")
+	public void errorGraph() {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		XYSeries series1 = new XYSeries("RNA_error", false, true);
 		
@@ -135,7 +141,7 @@ public class Net {
 	 * 
 	 * boolean add_bias_neuron : Si true, rajoute un BiasNeuron comme dernier élément de la Layer
 	 */
-	public void addLayer(String layer_type, String layer_activation_function, int layer_size, boolean add_bias_neuron) {
+	public Layer addLayer(String layer_type, String layer_activation_function, int layer_size, boolean add_bias_neuron) {
 		Layer new_layer = new Layer(this, layer_activation_function);
 		//new_layer.parent = this;
 		//Switch instancie différents types de layer selon le paramètre
@@ -152,6 +158,7 @@ public class Net {
 		}
 		//On rajoute la layer vide à Net.layers
 		layers.add(new_layer);
+		
 		//On rajoute les neurones à la layer
 		for (int i=0; i<layer_size; i++) {
 			new_layer.addNeuron("regular");
@@ -161,10 +168,12 @@ public class Net {
 			new_layer.addNeuron("bias");
 			new_layer.hasBiasNeuron = true;
 		}
+		
+		return new_layer;
 	}
 
 	
-	public void predict(double[][] x_test) {
+	public String predict(double[][] x_test) {
 		double[] predicted = new double[x_test.length];
 		for (int f=0; f<x_test.length; f++) {
 //			for (int f=0; f<1; f++) {
@@ -182,8 +191,8 @@ public class Net {
 			}
 			predicted[f] = layers.get(layers.size()-1).neurons.get(0).activation;
 		}
-		System.out.println("PREDICTION: ");
-		System.out.println(Arrays.toString(predicted));
+		return "\n PREDICTION: " + Arrays.toString(predicted);
+		
 	}
 
 	
@@ -218,6 +227,7 @@ public class Net {
 		
 		
 		//On initialise l'objet DataBase, ainsi que les matrices de poids et activations de l'objet
+		// database n'est jamais utilsé ? normal ?
 		DataBase dataBase = this.netDataBase;
 		initializeWeights();
 		initializeActivations();
@@ -288,7 +298,9 @@ public class Net {
 			
 			updateNetworkWeights(batchErrors, batchActivations, learning_rate);
 			
-			System.out.println(" \n EPOCH " + e );		
+			// SUPER LENT => VOIR POUR AMELIORER
+//			ApplicationWindow.ConsoleOutputAppend(" \n EPOCH " + e );
+			//System.out.println(" \n EPOCH " + e );		
 		}//Epochs for-loop
 
 	}
@@ -648,13 +660,98 @@ public class Net {
 		
 	}
 	
+	/* Transforme les données du fichier CSV dont le PATH est donné en paramètre,
+	 * en un ArrayList<double[][]> avec 2 éléments.
+	 * 
+	 * élément 1 : les Inputs d'entrainement
+	 * élément 2 : les Output d'entrainement
+	 */
+	public ArrayList<double[][]> importCSV(String file_path, boolean skip_first_row, int outputs_per_row) {
+		BufferedReader csvReader = null;
+		ArrayList<ArrayList<Double>> x_import = new ArrayList<ArrayList<Double>>();
+		ArrayList<ArrayList<Double>> y_import = new ArrayList<ArrayList<Double>>();
+		
+		// On crée un Reader pour lire le fichier CSV
+		try {
+			csvReader = new BufferedReader(new FileReader(file_path));
+			String row = "";
+			ArrayList<Double> inputs = new ArrayList<Double>();
+			ArrayList<Double> outputs = new ArrayList<Double>();
+			
+			// On lit le fichier CSV ligne par ligne
+			while ((row = csvReader.readLine()) != null) {
+				if (skip_first_row == true) {
+					skip_first_row = false;
+					continue;
+				}
+				
+				inputs.clear();
+				outputs.clear();
+			    String[] data = row.split(";");
+			    
+			    // Chaque ligne est transformée en un Array de Double
+			    for (String s : data) {
+			    	inputs.add(Double.parseDouble(s));
+			    }
+
+			    // On enlève de chaque ligne les dernières valeurs, qui correspondent aux Outputs souhaités
+			    for (int i = 0; i<outputs_per_row; i++) {
+			    	outputs.add(0, inputs.remove(inputs.size()-1));
+			    }
+
+			    x_import.add((ArrayList<Double>) inputs.clone());
+			    y_import.add((ArrayList<Double>) outputs.clone());	    
+			}
+			csvReader.close();
+			
+			// La méthode doit retourner des double[][], donc on doit transformer les ArrayList...
+		    double[][] x_result = new double[x_import.size()][];
+		    double[][] y_result = new double[x_import.size()][];
+		    
+		    // Transforme les ArrayList<ArrayList<Double>> en double[][]
+		    for (int i=0; i<x_import.size(); i++) {
+		    	x_result[i] = new double[x_import.get(i).size()];
+		    	for (int j=0; j<x_import.get(i).size(); j++) {
+		    		x_result[i][j] = x_import.get(i).get(j);
+		    	}
+		    }
+		    
+		    // Transforme les ArrayList<ArrayList<Double>> en double[][]
+		    for (int i=0; i<y_import.size(); i++) {
+		    	y_result[i] = new double[y_import.get(i).size()];
+		    	for (int j=0; j<y_import.get(i).size(); j++) {
+		    		y_result[i][j] = y_import.get(i).get(j);
+		    	}
+		    }
+		    System.out.println("x_result");
+		    System.out.println(Arrays.deepToString(x_result));
+		    System.out.println("y_result");
+		    System.out.println(Arrays.deepToString(y_result));
+			
+		    // ArrayList retourné contenant 2 éléments : une liste d'Inputs, et une liste d'Outputs
+		    ArrayList<double[][]> result = new ArrayList<double[][]>();
+		    result.add(x_result);
+		    result.add(y_result);
+			
+		    return result;
+		}
+		
+		
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
 	public static void main(String[] args) {
 		
 //		// Tableau XOR: nos données d'input pour l'entrainement du Réseau
-		final double [][] x_test = {{0,0}, {0,1}, {1,0}, {1,1}};
-		final double [][] y_test = {{0}, {1}, {1}, {0}};
+//		final double [][] x_test = {{0,0}, {0,1}, {1,0}, {1,1}};
+//		final double [][] y_test = {{0}, {1}, {1}, {0}};
 		
 		
 //		final double [][] y_test =  { {0},{0.198669331},{0.389418342},{0.564642473},{0.717356091},{0.841470985},{0.932039086},{0.98544973},{0.999573603},{0.973847631},{0.909297427},{0.808496404},{0.675463181},{0.515501372},{0.33498815},{0.141120008},{-0.058374143},{-0.255541102},{-0.442520443},{-0.611857891},{-0.756802495},{-0.871575772},{-0.951602074},{-0.993691004},{-0.996164609},{-0.958924275},{-0.883454656},{-0.772764488},{-0.631266638},{-0.464602179},{-0.279415498},{-0.083089403},{0.116549205},{0.311541364},{0.494113351},{0.656986599},{0.793667864},{0.898708096},{0.967919672},{0.998543345},{0.989358247},{0.940730557} };		
@@ -685,31 +782,32 @@ public class Net {
 		//Création d'un objet Net
 		Net myNet = new Net();
 		
-		//On rajoute 3 layers à l'objet
-		myNet.addLayer("input", "sigmoid", 2, true);
-		myNet.addLayer("hidden", "sigmoid", 4, true);
+//		//On rajoute 3 layers à l'objet
+//		myNet.addLayer("input", "sigmoid", 2, true);
 //		myNet.addLayer("hidden", "sigmoid", 4, true);
-//		myNet.addLayer("hidden", "sigmoid", 4, true);
-		myNet.addLayer("output", "sigmoid", 1, false);
-		
-
-
-		
-		myNet.train(x_test, y_test,  10000, 0.5);	
-//		generateMap(1);
+////		myNet.addLayer("hidden", "sigmoid", 4, true);
+////		myNet.addLayer("hidden", "sigmoid", 4, true);
+//		myNet.addLayer("output", "sigmoid", 1, false);
+//		
+//
+//
+//		
+//		myNet.train(x_test, y_test,  10000, 0.5);	
+////		generateMap(1);
+////		myNet.print();
+//		
+//		//TEMPORAIRE POUR TESTER		
+////		myNet.netDataBase.print();
+//		
+//		double[][] test = {{0,1}};
+//		myNet.predict(test);
+///////
+//
 //		myNet.print();
+//		myNet.errorGraph();
 		
-		//TEMPORAIRE POUR TESTER		
-//		myNet.netDataBase.print();
-		
-		double[][] test = {{0,1}};
-		myNet.predict(test);
-/////
-
-		myNet.print();
-		myNet.errorGraph();
-		
-
+		//CSV IMPORT TESTING
+		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
 
 	     
 // test commit
