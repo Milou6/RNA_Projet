@@ -3,7 +3,7 @@ package RNApkg;
 
 import java.awt.BorderLayout;
 
-//Pour la méthode importCSV()
+//Pour la mÃ©thode importCSV()
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -21,7 +21,7 @@ import org.jfree.data.xy.*;
 
 /* Classe de base du package.
  * 
- * À l'initialisation, un objet Net est connecté à un objet de la classe DataBase.
+ * Ã€ l'initialisation, un objet Net est connectÃ© Ã  un objet de la classe DataBase.
  * 
  * L'objet Net peut instantier plusieurs objets Layer, qui forment les "couches" du RNA.
  * Chaque objet Layer contient des objets Neuron.
@@ -30,7 +30,7 @@ import org.jfree.data.xy.*;
  * 
  * ArrayList<Layer> layers : ArrayList qui store des objets Layer
  * 
- * DataBase netDataBase : Référence à l'objet DataBase connecté
+ * DataBase netDataBase : RÃ©fÃ©rence Ã  l'objet DataBase connectÃ©
  */
 public class Net {
 	ArrayList<Layer> layers;
@@ -63,7 +63,7 @@ public class Net {
 		return impression;
 	}
 	
-	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
+	/* CrÃ©e un JFrame reprÃ©sentant la moyenne de l'erreur du RNA pendant l'entraÃ®nement.
 	 */
 	@SuppressWarnings("deprecation")
 	public void errorGraph() {
@@ -95,7 +95,7 @@ public class Net {
 	
 	
 	/* Retourne le Hadamard product de 2 matrices.
-	 * (multiplication élément-par-élément)
+	 * (multiplication Ã©lÃ©ment-par-Ã©lÃ©ment)
 	 */
 	public static RealMatrix hadamardProduct(RealMatrix m1, RealMatrix m2) {
 		RealMatrix result = new Array2DRowRealMatrix(new double[m1.getRowDimension()][m1.getColumnDimension()]);		
@@ -108,7 +108,7 @@ public class Net {
 	}
 
 	
-	/* Applique la dérivée de la fonction sigmoid.
+	/* Applique la dÃ©rivÃ©e de la fonction sigmoid.
 	 */
 	public  RealMatrix sigmoidPrime(RealMatrix m1) {
 		
@@ -116,7 +116,7 @@ public class Net {
 		RealMatrix corresponding_activation_matrix = netDataBase.activations.get(m1_index);
 		//Si la layer en question a un BiasNeuron, on ne veut pas son activation pour le calcul
 		if (layers.get(m1_index).hasBiasNeuron == true) {
-			//Ligne très longue, mais qui simplement supprime la dernière ligne de la matrice
+			//Ligne trÃ¨s longue, mais qui simplement supprime la derniÃ¨re ligne de la matrice
 			corresponding_activation_matrix = corresponding_activation_matrix.getSubMatrix(0, corresponding_activation_matrix.getRowDimension()-2, 0, corresponding_activation_matrix.getColumnDimension()-1);
 		}
 		RealMatrix result = corresponding_activation_matrix.copy();
@@ -129,22 +129,22 @@ public class Net {
 	}
 	
 	
-	/* Rajoute un objet Layer à ArrayList<Layer> layers
+	/* Rajoute un objet Layer Ã  ArrayList<Layer> layers
 	 * ___________________________________________________________________________________________
-	 * Paramètres :
+	 * ParamÃ¨tres :
 	 * 
 	 * String layer_type : "input", "hidden" ou "output"
 	 * 
-	 * String layer_activation_function : détermine le type de fonction d'actiovation des neurones de la Layer ("sigmoid")
+	 * String layer_activation_function : dÃ©termine le type de fonction d'actiovation des neurones de la Layer ("sigmoid")
 	 * 
-	 * int layer_size : le nombre de RegularNeuron à ajouter à l'objet Layer (sans compter le BiasNeuron)
+	 * int layer_size : le nombre de RegularNeuron Ã  ajouter Ã  l'objet Layer (sans compter le BiasNeuron)
 	 * 
-	 * boolean add_bias_neuron : Si true, rajoute un BiasNeuron comme dernier élément de la Layer
+	 * boolean add_bias_neuron : Si true, rajoute un BiasNeuron comme dernier Ã©lÃ©ment de la Layer
 	 */
 	public Layer addLayer(String layer_type, String layer_activation_function, int layer_size, boolean add_bias_neuron) {
 		Layer new_layer = new Layer(this, layer_activation_function);
 		//new_layer.parent = this;
-		//Switch instancie différents types de layer selon le paramètre
+		//Switch instancie diffÃ©rents types de layer selon le paramÃ¨tre
 		switch(layer_type) {
 			case "input":
 				new_layer = new InputLayer(this, layer_activation_function);
@@ -156,10 +156,10 @@ public class Net {
 				new_layer = new OutputLayer(this, layer_activation_function);
 				break;
 		}
-		//On rajoute la layer vide à Net.layers
+		//On rajoute la layer vide Ã  Net.layers
 		layers.add(new_layer);
 		
-		//On rajoute les neurones à la layer
+		//On rajoute les neurones Ã  la layer
 		for (int i=0; i<layer_size; i++) {
 			new_layer.addNeuron("regular");
 		}
@@ -178,7 +178,7 @@ public class Net {
 		for (int f=0; f<x_test.length; f++) {
 //			for (int f=0; f<1; f++) {
 				
-				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
+				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des donnÃ©es d'Input)
 				for (int n=0; n<layers.get(0).layerSize; n++) {
 					Neuron current_neuron = layers.get(0).neurons.get(n);
 					if (current_neuron instanceof RegularNeuron) {
@@ -197,37 +197,37 @@ public class Net {
 
 	
 	
-	/* Méthode qui entraîne le RNA, en appliquant la forward- et back-propagation
+	/* MÃ©thode qui entraÃ®ne le RNA, en appliquant la forward- et back-propagation
 	 * successivement pendant X epochs.
 	 * __________________________________________________________________________
-	 * Paramètres :
+	 * ParamÃ¨tres :
 	 * 
-	 * int[][] x_test : tableau de données d'Input
+	 * int[][] x_test : tableau de donnÃ©es d'Input
 	 * 
-	 * int[][] y_test : labels (=résultat attendu) des données d'Input
+	 * int[][] y_test : labels (=rÃ©sultat attendu) des donnÃ©es d'Input
 	 * 
-	 * int epochs : nombre d'itérations sur la totalité des données d'entraînement
+	 * int epochs : nombre d'itÃ©rations sur la totalitÃ© des donnÃ©es d'entraÃ®nement
 	 */
 	public void train(double[][] x_test, double[][] y_test, int epochs, double learning_rate) {
 		
-		// Test: vérifie que x_test et y_test ont la même taille
+		// Test: vÃ©rifie que x_test et y_test ont la mÃªme taille
 		if (x_test.length != y_test.length) {
 			throw new ArrayIndexOutOfBoundsException("Input data and Label lengths do not match.");
 		}
-		// Test: vérifie que l'InputLayer et x_test sont compatibles
+		// Test: vÃ©rifie que l'InputLayer et x_test sont compatibles
 		int number_of_input_neurons = layers.get(0).layerSize;
 		if (layers.get(0).hasBiasNeuron == true) {number_of_input_neurons -= 1;}
 		if ( number_of_input_neurons != x_test[0].length) {
 			throw new ArrayIndexOutOfBoundsException(String.format("Input entries are of length %d and InputLayer has %d input neuron(s)", x_test[0].length, number_of_input_neurons));
 		}
-		// Test: vérifie que l'OututLayer et y_test sont compatibles
+		// Test: vÃ©rifie que l'OututLayer et y_test sont compatibles
 		if (y_test[0].length != layers.get(layers.size()-1).layerSize) {
 			throw new ArrayIndexOutOfBoundsException(String.format("Output data is of length %d and OutputLayer has %d neuron(s)", y_test[0].length, layers.get(layers.size()-1).layerSize));
 		}
 		
 		
 		//On initialise l'objet DataBase, ainsi que les matrices de poids et activations de l'objet
-		// database n'est jamais utilsé ? normal ?
+		// database n'est jamais utilsÃ© ? normal ?
 		DataBase dataBase = this.netDataBase;
 		initializeWeights();
 		initializeActivations();
@@ -240,11 +240,11 @@ public class Net {
 			this.batchErrors.clear();
 			this.batchActivations.clear();
 			
-			// Boucle des Batch (chaque Batch correspond à une propagation en avant pour chaque entrée des données d'Input) 
+			// Boucle des Batch (chaque Batch correspond Ã  une propagation en avant pour chaque entrÃ©e des donnÃ©es d'Input) 
 			for (int f=0; f<x_test.length; f++) {
 //			for (int f=0; f<1; f++) {
 				
-				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
+				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des donnÃ©es d'Input)
 				for (int n=0; n<layers.get(0).layerSize; n++) {
 					Neuron current_neuron = layers.get(0).neurons.get(n);
 					if (current_neuron instanceof RegularNeuron) {
@@ -260,7 +260,7 @@ public class Net {
 				
 
 				//On garde les erreurs et les activations du RNA pour chaque x du Batch
-				//On crée des variables "temp" pour éviter de faire des shallow_copy
+				//On crÃ©e des variables "temp" pour Ã©viter de faire des shallow_copy
 				ArrayList<RealMatrix> temp_batch_errors = new ArrayList<>(netDataBase.layerError);
 //				ArrayList<RealMatrix> temp_batch_activations = new ArrayList<>(netDataBase.activations);
 				ArrayList<RealMatrix> temp_batch_activations = new ArrayList<RealMatrix>();
@@ -285,7 +285,7 @@ public class Net {
 
 			}
 			
-			// networkError utilisé pour faire le graph de l'erreur d'entraînement
+			// networkError utilisÃ© pour faire le graph de l'erreur d'entraÃ®nement
 			double batch_error = 0.0;
 			for (int i=0; i<this.batchErrors.size(); i++) {
 				batch_error = batch_error + Math.abs(batchErrors.get(i).get(layers.size()-1).getEntry(0, 0));
@@ -306,19 +306,19 @@ public class Net {
 	}
 	
 	
-	/* Méthode appelée à l'intérieur de Net.train()
-	 * Crée les matrices de poids du RNA et les rajoute à l'objet DataBase.
-	 * Initialise tous les éléments de ces matrices à des valeurs aléatoires dans [0, 1].
+	/* MÃ©thode appelÃ©e Ã  l'intÃ©rieur de Net.train()
+	 * CrÃ©e les matrices de poids du RNA et les rajoute Ã  l'objet DataBase.
+	 * Initialise tous les Ã©lÃ©ments de ces matrices Ã  des valeurs alÃ©atoires dans [0, 1].
 	 */
 	public void initializeWeights() {
-		//On modélise chaque "espace" entre 2 layers par une matrice de weights[][] qui connectent ces 2 layers
+		//On modÃ©lise chaque "espace" entre 2 layers par une matrice de weights[][] qui connectent ces 2 layers
 		for (int i=0; i<layers.size()-1; i++) {
 			int current_layer_size = layers.get(i).layerSize;
 			int next_layer_size = layers.get(i+1).layerSize;
 			//Les neurones d'une layer(l) ne doivent pas connecter au BiasNeuron de la layer(l+1)
 			if (layers.get(i+1).hasBiasNeuron == true) {next_layer_size -= 1;}
 			
-			//Chaque matrice est initialisée avec des valeurs aléatoires
+			//Chaque matrice est initialisÃ©e avec des valeurs alÃ©atoires
 			double [][] new_weights = new double[next_layer_size][current_layer_size];
 			for (int j=0; j<new_weights.length; j++) {
 				for (int k=0; k<new_weights[j].length; k++) {
@@ -327,17 +327,17 @@ public class Net {
 			}
 			// On transforme le double[][] en RealMatrix
 			RealMatrix weights_matrix = new Array2DRowRealMatrix(new_weights);
-			//On rajoute chaque matrice à l'objet DataBase
+			//On rajoute chaque matrice Ã  l'objet DataBase
 			this.netDataBase.weights.add(weights_matrix);
 		}
-		//On demande à la DataBase de mettre à jour les poids de chaque neurone
+		//On demande Ã  la DataBase de mettre Ã  jour les poids de chaque neurone
 		this.netDataBase.sendWeightsToNeurons();	
 	}
 
 	
-	/* Méthode appelée à l'intérieur de Net.train()
-	 * Crée les matrices d'activations du RNA et les rajoute à l'objet DataBase.
-	 * Ces matrices sont remplies de ,{0.0, sauf pour les index des BiasNeuron (où l'on a des 1.0).
+	/* MÃ©thode appelÃ©e Ã  l'intÃ©rieur de Net.train()
+	 * CrÃ©e les matrices d'activations du RNA et les rajoute Ã  l'objet DataBase.
+	 * Ces matrices sont remplies de ,{0.0, sauf pour les index des BiasNeuron (oÃ¹ l'on a des 1.0).
 	 */
 	public void initializeActivations() {
 		for (int i=0; i<layers.size(); i++) {
@@ -351,16 +351,16 @@ public class Net {
 				Neuron current_neuron = layers.get(i).neurons.get(j);
 				activations_matrix.setEntry(j, 0, current_neuron.activation);
 			}
-			//On rajoute le tout à la DataBase.activations
+			//On rajoute le tout Ã  la DataBase.activations
 			this.netDataBase.activations.add(activations_matrix);
 		}
 	}
 	
 	
-	/* Méthode appelée à l'intérieur de Net.train()
-	 * Crée les matrices de weighted inputs du RNA et les rajoute à l'objet DataBase.
+	/* MÃ©thode appelÃ©e Ã  l'intÃ©rieur de Net.train()
+	 * CrÃ©e les matrices de weighted inputs du RNA et les rajoute Ã  l'objet DataBase.
 	 * 
-	 * Le weighted input d'un neurone représente son output AVANT de lui appliquer la fonction sigmoid.
+	 * Le weighted input d'un neurone reprÃ©sente son output AVANT de lui appliquer la fonction sigmoid.
 	 * 
 	 * z = SUM(x * poids) + bias
 	 */
@@ -378,16 +378,16 @@ public class Net {
 				Neuron current_neuron = layers.get(i).neurons.get(j);
 				weighted_inputs_matrix.setEntry(j, 0, current_neuron.activation);
 			}
-			//On rajoute le tout à la DataBase.activations
+			//On rajoute le tout Ã  la DataBase.activations
 			this.netDataBase.weightedInputs.add(weighted_inputs_matrix);
 		}
 	}
 	
 	
-	/* Méthode appelée à l'intérieur de Net.train()
-	 * Crée les matrices d'erreur du RNA et les rajoute à l'objet DataBase.
+	/* MÃ©thode appelÃ©e Ã  l'intÃ©rieur de Net.train()
+	 * CrÃ©e les matrices d'erreur du RNA et les rajoute Ã  l'objet DataBase.
 	 * 
-	 * L'erreur de chawue Layer est utilisée pour calculer les mises à jour des poids.
+	 * L'erreur de chawue Layer est utilisÃ©e pour calculer les mises Ã  jour des poids.
 	 */
 	public void initializeLayerError() {
 		for (int i=0; i<layers.size(); i++) {
@@ -403,30 +403,30 @@ public class Net {
 				Neuron current_neuron = layers.get(i).neurons.get(j);
 				error_matrix.setEntry(j, 0, current_neuron.activation);
 			}
-			//On rajoute le tout à la DataBase.activations
+			//On rajoute le tout Ã  la DataBase.activations
 			this.netDataBase.layerError.add(error_matrix);
 		}
 	}
 	
 	
-	/* Méthode qui calcule l'erreur de l'Output.
+	/* MÃ©thode qui calcule l'erreur de l'Output.
 	 * 
 	 * Utilise le Mean Squared Error (MSE).
 	 */
 	public void computeOutputError(double[] real_output) {
-		//On transforme l'output réel en double[][]
+		//On transforme l'output rÃ©el en double[][]
 		int output_length = real_output.length;
 		double[][] real_output_array = new double[output_length][1];
 		for (int i=0; i<output_length; i++) {
 			real_output_array[i][0] = real_output[i];
 		}
-		//Ensuite on crée une RealMatrix à partir de ce double[][]
+		//Ensuite on crÃ©e une RealMatrix Ã  partir de ce double[][]
 		RealMatrix real_output_vector = new Array2DRowRealMatrix(real_output_array); 
 //		System.out.println(real_output_vector);
 		
 		int index = netDataBase.layerError.size()-1;
 		
-		//right_member correspond à [sigmoid(z) * (1-sigmoid(z))]
+		//right_member correspond Ã  [sigmoid(z) * (1-sigmoid(z))]
 		RealMatrix right_member = netDataBase.activations.get(index).copy();
 		// (-sigmoid(z))
 		right_member = right_member.scalarMultiply(-1);
@@ -437,7 +437,7 @@ public class Net {
 //		System.out.println(right_member);
 		
 
-		//left_member correspond à (a - y)
+		//left_member correspond Ã  (a - y)
 		RealMatrix left_member = netDataBase.activations.get(index).copy().subtract(real_output_vector);
 //		netDataBase.layerError.set(index, output_error);
 //		System.out.println(left_member);
@@ -457,7 +457,7 @@ public class Net {
 	}
 	
 	
-	/* Backpropagation de l'erreur de l'OutputLayer à toutes
+	/* Backpropagation de l'erreur de l'OutputLayer Ã  toutes
 	 * les autres Layer.
 	 */
 	public void backPropagateError() {
@@ -487,13 +487,13 @@ public class Net {
 
 	
 	/*
-	 * Mets à jour les poids des RegularNeuron et des BiasNeuron.
+	 * Mets Ã  jour les poids des RegularNeuron et des BiasNeuron.
 	 */
 	public void updateNetworkWeights(ArrayList<ArrayList<RealMatrix>> batchErrors, ArrayList<ArrayList<RealMatrix>> batchActivations, double learning_rate) {
 		// i :  layers 2 and 1
 		
 		
-		//Pour Débugger
+		//Pour DÃ©bugger
 //		for (ArrayList<RealMatrix> R : batchErrors) {
 //			for (RealMatrix M : R) {
 //				double[][] data = M.getData();
@@ -660,18 +660,18 @@ public class Net {
 		
 	}
 	
-	/* Transforme les données du fichier CSV dont le PATH est donné en paramètre,
-	 * en un ArrayList<double[][]> avec 2 éléments.
+	/* Transforme les donnÃ©es du fichier CSV dont le PATH est donnÃ© en paramÃ¨tre,
+	 * en un ArrayList<double[][]> avec 2 Ã©lÃ©ments.
 	 * 
-	 * élément 1 : les Inputs d'entrainement
-	 * élément 2 : les Output d'entrainement
+	 * Ã©lÃ©ment 1 : les Inputs d'entrainement
+	 * Ã©lÃ©ment 2 : les Output d'entrainement
 	 */
 	public ArrayList<double[][]> importCSV(String file_path, boolean skip_first_row, int outputs_per_row) {
 		BufferedReader csvReader = null;
 		ArrayList<ArrayList<Double>> x_import = new ArrayList<ArrayList<Double>>();
 		ArrayList<ArrayList<Double>> y_import = new ArrayList<ArrayList<Double>>();
 		
-		// On crée un Reader pour lire le fichier CSV
+		// On crÃ©e un Reader pour lire le fichier CSV
 		try {
 			csvReader = new BufferedReader(new FileReader(file_path));
 			String row = "";
@@ -689,12 +689,12 @@ public class Net {
 				outputs.clear();
 			    String[] data = row.split(";");
 			    
-			    // Chaque ligne est transformée en un Array de Double
+			    // Chaque ligne est transformÃ©e en un Array de Double
 			    for (String s : data) {
 			    	inputs.add(Double.parseDouble(s));
 			    }
 
-			    // On enlève de chaque ligne les dernières valeurs, qui correspondent aux Outputs souhaités
+			    // On enlÃ¨ve de chaque ligne les derniÃ¨res valeurs, qui correspondent aux Outputs souhaitÃ©s
 			    for (int i = 0; i<outputs_per_row; i++) {
 			    	outputs.add(0, inputs.remove(inputs.size()-1));
 			    }
@@ -704,7 +704,7 @@ public class Net {
 			}
 			csvReader.close();
 			
-			// La méthode doit retourner des double[][], donc on doit transformer les ArrayList...
+			// La mÃ©thode doit retourner des double[][], donc on doit transformer les ArrayList...
 		    double[][] x_result = new double[x_import.size()][];
 		    double[][] y_result = new double[x_import.size()][];
 		    
@@ -728,7 +728,7 @@ public class Net {
 		    System.out.println("y_result");
 		    System.out.println(Arrays.deepToString(y_result));
 			
-		    // ArrayList retourné contenant 2 éléments : une liste d'Inputs, et une liste d'Outputs
+		    // ArrayList retournÃ© contenant 2 Ã©lÃ©ments : une liste d'Inputs, et une liste d'Outputs
 		    ArrayList<double[][]> result = new ArrayList<double[][]>();
 		    result.add(x_result);
 		    result.add(y_result);
@@ -749,7 +749,7 @@ public class Net {
 	
 	public static void main(String[] args) {
 		
-//		// Tableau XOR: nos données d'input pour l'entrainement du Réseau
+//		// Tableau XOR: nos donnÃ©es d'input pour l'entrainement du RÃ©seau
 //		final double [][] x_test = {{0,0}, {0,1}, {1,0}, {1,1}};
 //		final double [][] y_test = {{0}, {1}, {1}, {0}};
 		
@@ -770,7 +770,7 @@ public class Net {
 //		final double [][] x_test = {{0,0}, {0,1}, {1,0}, {1,1}};
 //		final double [][] y_test = {{0}, {0}, {0}, {1}};
 		
-		// x au carré
+		// x au carrÃ©
 //		final double [][] x_test = {{1}, {3}, {12}, {11}, {2}, {4}};
 //		final double [][] y_test = {{1}, {9}, {144}, {121}, {4}, {16}};
 		
@@ -779,10 +779,10 @@ public class Net {
 //		final double [][] y_test = {{0}, {0}, {1}, {0}, {1}, {1}, {1}, {1}, {1}, {0}, {0}};
 		
 		
-		//Création d'un objet Net
+		//CrÃ©ation d'un objet Net
 		Net myNet = new Net();
 		
-//		//On rajoute 3 layers à l'objet
+//		//On rajoute 3 layers Ã  l'objet
 //		myNet.addLayer("input", "sigmoid", 2, true);
 //		myNet.addLayer("hidden", "sigmoid", 4, true);
 ////		myNet.addLayer("hidden", "sigmoid", 4, true);
