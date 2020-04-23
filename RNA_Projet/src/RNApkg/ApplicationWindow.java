@@ -1,4 +1,5 @@
 package RNApkg;
+//testy.....
 
 import java.awt.EventQueue;
 
@@ -98,9 +99,6 @@ public class ApplicationWindow {
 		initialize();
 	}
 
-
-	
-	
 	/**
 	 * Création et initialisation des différent composants de la fenêtre
 	 * 
@@ -146,16 +144,14 @@ public class ApplicationWindow {
 //		lblStartup.setFocusCycleRoot(true);
 //		lblStartup.setFont(new Font("OCR A Extended", Font.BOLD, 54));
 		
-
-///
-
-
-		
+///	
 		
 //		pnlAffichage.add(lblStartup, "cell 0 0");
 		
 		
-		//===Bouton d'ajout de couche===
+		
+		
+//// BOUTON D' AJOUT DE COUCHE /////////////////////////////////////////////////////////////////////////////////
 		btnAddLayer = new Button("addLayer");
 		btnAddLayer.addActionListener(new ActionListener() {
 			/*
@@ -190,6 +186,8 @@ public class ApplicationWindow {
 				//===Liste type d'activation===
 				DefaultListModel<String> dlmFoncActiv = new DefaultListModel<String>();
 				dlmFoncActiv.addElement("sigmoid");
+				dlmFoncActiv.addElement("relu");
+				dlmFoncActiv.addElement("lrelu");
 				JList<String> lstFonctActiv = new JList<String>(dlmFoncActiv);
 				lstFonctActiv.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 				lstFonctActiv.setSelectedIndex(0);
@@ -271,7 +269,9 @@ public class ApplicationWindow {
 		
 		
 		
-		//===Bouton de supression de couche===
+		
+		
+//// BOUTON DE SUPPRESSION DE COUCHE /////////////////////////////////////////////////////////////////////////////////
 		btnPopLayer = new Button("popLayer");
 		btnPopLayer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -282,8 +282,7 @@ public class ApplicationWindow {
 				lstLayers.addListSelectionListener(new ListSelectionListener() {
 					@Override
 					public void valueChanged(ListSelectionEvent e) {
-						// TODO Auto-generated method stub
-						
+						// TODO Auto-generated method stub				
 					}
 				});
 				
@@ -307,7 +306,8 @@ public class ApplicationWindow {
 		
 		
 		
-		//===Bouton d'importation des données===
+		
+//// BOUTON D' IMPORTATION DE DONNEES /////////////////////////////////////////////////////////////////////////////////
 		btnImportData = new Button("Importer donn\u00E9es d'input");
 		btnImportData.setEnabled(false);
 		btnImportData.addActionListener(new ActionListener() {
@@ -318,8 +318,7 @@ public class ApplicationWindow {
 				
 				 if (donneesImportees == JFileChooser.APPROVE_OPTION) {
 					 File file = fc.getSelectedFile();
-					 String filePath = file.getAbsolutePath();
-					  
+					 String filePath = file.getAbsolutePath();					  
 						
 					// Implémentation du Dialog pour l'importation de données ///////////////////////////////////////////
 					
@@ -341,7 +340,6 @@ public class ApplicationWindow {
 					JList<Integer> listeOutputs = new JList<Integer>(dlmOutputs);
 					listeOutputs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					listeOutputs.setSelectedIndex(0);
-
 					
 					// Rassemble les choix du Dialog
 					final JComponent[] ImportationDonnees = new JComponent[] {
@@ -354,8 +352,6 @@ public class ApplicationWindow {
 					
 					// /Implémentation du Dialog pour l'importation de données ///////////////////////////////////////////
 				 
-				 
-
 					 // On appelle la méthode importCSV() avec les paramètres choisis par l'utilisateur dans le 
 					 // Dialog ci-dessus.
 					if (result == JOptionPane.OK_OPTION) {
@@ -377,49 +373,112 @@ public class ApplicationWindow {
 		
 		
 		
-		//entrainement 
+//// BOUTON D'ENTRAINEMENT DU RESEAU /////////////////////////////////////////////////////////////////////////////////
 		btnTrain = new Button("train");
 		btnTrain.setEnabled(false);
 		btnTrain.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				myNet.train(x_test, y_test,  10000, 0.5);
+
+				JTextField txtNbrEpochs = new JTextField("5000");
+				JTextField txtLearningRate = new JTextField("0.5");
+				
+				// Rassemble les choix du Dialog
+				final JComponent[] Entrainement = new JComponent[] {
+				        new JLabel("Nombre d'epochs d'entraînement : "),
+				        txtNbrEpochs,
+				        new JLabel("learning_rate : "),
+				        txtLearningRate
+				};
+				int result = JOptionPane.showConfirmDialog(null, Entrainement, "Train network", JOptionPane.PLAIN_MESSAGE);
+				
+				if (result == JOptionPane.OK_OPTION) {
+					myNet.train(x_test, y_test, Integer.parseInt(txtNbrEpochs.getText()), Double.parseDouble(txtLearningRate.getText()));
+					
+					// On appelle la methode errorGraph()
+					ChartPanel ErrorChartPanel = myNet.errorGraph();
+						
+					// On rajoute le graphe retourné par cette méthode au Panel d'affichage
+					pnlAffichage.removeAll();
+					pnlAffichage.add(ErrorChartPanel);
+					pnlAffichage.validate();
+					
+					btnPredict.setEnabled(true);
+					btnPrint.setEnabled(true);
+					
+				} else {
+				    System.out.println("User canceled / closed the dialog, result = " + result);
+				}
 				//txtConsoleOutput.append(txtConsoleOutput.toString());
 				//txtConsoleOutput.append("\n\n" + System.in.toString());
 				
 				//txtConsoleOutput.append("\n\n" + myNet.networkError.toString());
-				
-				XYSeriesCollection dataset = new XYSeriesCollection();
-				XYSeries series1 = new XYSeries("Object 1", false, true);
-				
-				for (int i=0; i<myNet.networkError.size()-1; i++) {
-					series1.add(i, myNet.networkError.get(i));
-				}
-				dataset.addSeries(series1);
-				
-				JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "Epoch", "Error", dataset, PlotOrientation.VERTICAL, true, true, false);
-				//JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "error", "Epoch", dataset);
-				chart.createBufferedImage(500, 500);
-				
-				ChartPanel CP = new ChartPanel(chart);
-				pnlAffichage.removeAll();
-				pnlAffichage.add(CP);
-				pnlAffichage.validate();
-				
-				btnPredict.setEnabled(true);
-				btnPrint.setEnabled(true);
 			}
 		});
 		mainFrame.getContentPane().add(btnTrain, "cell 2 3,grow");
 		
 		
 		
-		//===prédiction sur les nouvelles donées===
+		
+		
+//// BOUTON DE PREDICTION SUR DE NOUVELLES DONNEES /////////////////////////////////////////////////////////////////////////////////
+	// Il prend un fichier .csv , comme le bouton "ImporterDonnes" 
 		btnPredict = new Button("predict");
 		btnPredict.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				final double [][] testDonne = {{0,1}};
-				test = testDonne;			
-				txtConsoleOutput.append(myNet.predict(test));
+				
+				
+				//// ON REUTILISE ICI LE CODE POUR LA DIALOG BOX DE "IMPORTERDONNEES" ////////////
+				final JFileChooser fc = new JFileChooser();
+				int donneesImportees = fc.showOpenDialog(mainFrame);
+				
+				 if (donneesImportees == JFileChooser.APPROVE_OPTION) {
+					 File file = fc.getSelectedFile();
+					 String filePath = file.getAbsolutePath();
+				
+						// Implémentation du Dialog pour lA PREDICTION de données ///////////////////////////////////////////
+						
+						//===radio bouton Neurone de biais===
+						JRadioButton radLigne1Oui = new JRadioButton("Oui");				
+						JRadioButton radLigne1Non = new JRadioButton("Non");
+						ButtonGroup groupeRad = new ButtonGroup();
+						groupeRad.add(radLigne1Oui);
+						groupeRad.add(radLigne1Non);
+						radLigne1Oui.setSelected(true);
+						
+						//===Liste du nombre d'outputs pour chaque ligne de données===
+						DefaultListModel<Integer> dlmOutputs = new DefaultListModel<Integer>();
+						dlmOutputs.addElement(1);
+						dlmOutputs.addElement(2);
+						dlmOutputs.addElement(3);
+						dlmOutputs.addElement(4);
+						dlmOutputs.addElement(5);
+						JList<Integer> listeOutputs = new JList<Integer>(dlmOutputs);
+						listeOutputs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+						listeOutputs.setSelectedIndex(0);
+				
+						// Rassemble les choix du Dialog
+						final JComponent[] ImportationDonnees = new JComponent[] {
+						        new JLabel("Ignorer la 1ere ligne du fichier?"),
+						        radLigne1Oui, radLigne1Non,
+						        new JLabel("Nbe d'outputs / exemple d'entrainement"),
+						        listeOutputs
+						};
+						
+					 int result = JOptionPane.showConfirmDialog(null, ImportationDonnees, "Importation : " + file.getName(), JOptionPane.PLAIN_MESSAGE);
+				
+					 // On appelle la méthode importCSV() avec les paramètres choisis par l'utilisateur dans le 
+					 // Dialog ci-dessus.
+					if (result == JOptionPane.OK_OPTION) {
+						double[][] prediction = myNet.testNetwork(filePath, radLigne1Oui.isSelected(), listeOutputs.getSelectedValue());
+						
+						txtConsoleOutput.append("\n PREDICTIONS : \n");
+						txtConsoleOutput.append("\n" + Arrays.deepToString(prediction) + "\n");
+						btnTrain.setEnabled(true);
+					}
+					else {
+					    System.out.println("User canceled / closed the dialog, result = " + result);
+					}
+				 }
 			}
 		});
 		btnPredict.setEnabled(false);
@@ -428,7 +487,7 @@ public class ApplicationWindow {
 		
 		
 		
-		//===Affichage===
+//// AFFICHAGE /////////////////////////////////////////////////////////////////////////////////
 		btnPrint = new Button("print");
 		btnPrint.setEnabled(false);
 		btnPrint.addActionListener(new ActionListener() {
@@ -447,6 +506,9 @@ public class ApplicationWindow {
 		txtConsoleOutput.setBackground(Color.BLACK);
 		txtConsoleOutput.setText("Sortie Console :");
 		mainFrame.getContentPane().add(txtConsoleOutput, "cell 0 7 3 1,grow");
+		
+		
+		
 		
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//===création du résaux de neurone===
