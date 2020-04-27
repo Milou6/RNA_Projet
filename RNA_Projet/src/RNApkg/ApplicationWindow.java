@@ -18,6 +18,8 @@ import java.awt.Dimension;
 import java.awt.Button;
 import java.awt.TextArea;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -74,7 +76,10 @@ public class ApplicationWindow {
 	
 	private LIMCouche coucheRNA;
 	
-//	private XYSeriesCollection dataset;
+
+	ArrayList<DrawPanel> drawPanelList;
+	
+	
 	/**
 	 * Lancement de l'application
 	 */
@@ -105,6 +110,8 @@ public class ApplicationWindow {
 	 */
 	private void initialize() {	
 		
+		drawPanelList = new ArrayList<DrawPanel>();
+		
 		//===fenêtre principal===
 		mainFrame = new JFrame();
 		mainFrame.setTitle("Projet RNA");
@@ -118,6 +125,22 @@ public class ApplicationWindow {
 		//===Panneau d'affichage===
 		pnlAffichage = new JPanel();
 		pnlAffichage.setLayout(new BoxLayout(pnlAffichage, BoxLayout.X_AXIS));
+
+		
+		// Permet de re-sizer les LayerPanel quand on change la taille de la fenetre //
+		pnlAffichage.addComponentListener(new ComponentAdapter() {
+	        @Override
+	        public void componentResized(ComponentEvent e) {
+	          	System.out.println("Resized to " + e.getComponent().getSize());
+	        	if (drawPanelList.size() != 0) {
+		          	for (DrawPanel panel : drawPanelList) {
+		        		panel.repaint();
+		        	}
+	        	}
+	        }
+		});
+		
+		
 		
 /*		{
 			@Override
@@ -136,7 +159,11 @@ public class ApplicationWindow {
 				g2.draw(roundRect);
 			}
 		}; */
-		mainFrame.getContentPane().add(pnlAffichage, "cell 0 0 1 6,grow");
+		
+		
+		mainFrame.getContentPane().add(pnlAffichage, "cell 0 0 1 7,grow");
+//		mainFrame.getContentPane().add(pnlAffichage);
+		
 //		pnlAffichage.setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
 //		
 //		
@@ -251,6 +278,7 @@ public class ApplicationWindow {
 					compound = BorderFactory.createTitledBorder("Layer" + panelNumber);
 					layerPanel.setBorder(compound);
 					
+//					layerPanel.setBounds(0, 0, pnlAffichage.getWidth() , pnlAffichage.getHeight());
 					layerPanel.setMaximumSize(new Dimension(150, pnlAffichage.getHeight()));
 					
 					pnlAffichage.add(layerPanel);

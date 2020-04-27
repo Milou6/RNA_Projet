@@ -15,7 +15,13 @@ public class DrawPanel extends JPanel{
 
 	@Override public void paintComponent(Graphics g) {
 		
+		
+		int panelHeight = this.getHeight();
+		
 		for (int i=1; i<nbrNeurones+1; i++) {
+//			g.drawOval(50, i*(panelHeight/nbrNeurones)/2, 50, 50); // <-- draws an oval on the panel
+//			g.drawOval(50, panelHeight/(nbrNeurones+1), 50, 50); // <-- draws an oval on the panel
+			
 			g.drawOval(50, 100*i, 50, 50); // <-- draws an oval on the panel
 		}
     }

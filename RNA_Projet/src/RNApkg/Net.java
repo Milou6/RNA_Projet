@@ -65,7 +65,6 @@ public class Net {
 	
 	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
 	 */
-	@SuppressWarnings("deprecation")
 	public ChartPanel errorGraph() {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		XYSeries series1 = new XYSeries("RNA_error", false, true);
@@ -97,6 +96,40 @@ public class Net {
 //		 frame.setSize(300, 300); 
 //	     frame.show(); 
 	}
+	
+	
+	@SuppressWarnings("deprecation")
+	public void debugErrorGraph() {
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series1 = new XYSeries("RNA_error", false, true);
+		
+		for (int i=0; i<networkError.size()-1; i++) {
+			series1.add(i, networkError.get(i));
+		}
+		dataset.addSeries(series1);
+		
+		
+		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "Epoch", "Error", dataset, PlotOrientation.VERTICAL, true, true, false);		
+//		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "error", "Epoch", dataset, "horizontal", false, false, false);
+		
+		chart.createBufferedImage(600, 600);
+		
+		JPanel jPanel1 = new JPanel();
+		jPanel1.setLayout(new java.awt.BorderLayout());
+		ChartPanel CP = new ChartPanel(chart);
+
+		
+		//// NEXT LINES REMOVED FOR INTERGRATION WITH UI ////////////
+		
+		jPanel1.add(CP,BorderLayout.CENTER);
+		jPanel1.validate();
+		
+		 JFrame frame = new JFrame();
+		 frame.add(jPanel1); 
+		 frame.setSize(300, 300); 
+	     frame.show(); 
+	}
+	
 	
 	
 	/* Retourne le Hadamard product de 2 matrices.
@@ -242,8 +275,8 @@ public class Net {
 		ArrayList<double[][]> imported = this.importCSV(file_path, skip_first_row, outputs_per_row);
 		double[][] x_test = imported.get(0);
 		double[][] y_test = imported.get(1);
-		System.out.println(Arrays.deepToString(x_test));
-		System.out.println(Arrays.deepToString(y_test));
+//		System.out.println(Arrays.deepToString(x_test));
+//		System.out.println(Arrays.deepToString(y_test));
 		double[][] predictions = new double[x_test.length][];
 		
 		// Boucle sur chaque ligne du .csv importé
@@ -262,12 +295,12 @@ public class Net {
 			for (Layer l : this.layers) {
 				l.forwardPropagate(x_test);
 			}
-			System.out.println(layers.get(layers.size()-1).neurons.size());
+//			System.out.println(layers.get(layers.size()-1).neurons.size());
 			for (int k=0; k<layers.get(layers.size()-1).neurons.size(); k++) {
 				predictions[i][k] = layers.get(layers.size()-1).neurons.get(k).activation;
 			}
-			System.out.println("predictions : ");
-			System.out.println(Arrays.deepToString(predictions));
+//			System.out.println("predictions : ");
+//			System.out.println(Arrays.deepToString(predictions));
 		}
 		
 		return predictions;
@@ -343,7 +376,7 @@ public class Net {
 
 		//Boucle des Epochs
 		for (int e=0; e<epochs; e++) {
-//			System.out.println(" \n EPOCH " + e);
+			System.out.println(" \n EPOCH " + e);
 			this.batchErrors.clear();
 			this.batchActivations.clear();
 			
@@ -416,8 +449,7 @@ public class Net {
 			updateNetworkWeights(batchErrors, batchActivations, learning_rate);
 			
 			// SUPER LENT => VOIR POUR AMELIORER
-			ApplicationWindow.ConsoleOutputAppend(" \n EPOCH " + e );
-			//System.out.println(" \n EPOCH " + e );		
+//			ApplicationWindow.ConsoleOutputAppend(" \n EPOCH " + e );
 		}//Epochs for-loop
 
 	}
@@ -937,83 +969,73 @@ public class Net {
 		// nombre pair?
 //		final double [][] x_test = {{1}, {3}, {12}, {11}, {2}, {4}, {8}, {10}, {32}, {5}, {9}};
 //		final double [][] y_test = {{0}, {0}, {1}, {0}, {1}, {1}, {1}, {1}, {1}, {0}, {0}};
+
 		
 		
-		//Création d'un objet Net
+		
+		
+/////////////////////////////////  TEST 1 : XOR LOGIC GATE ////////////////////////////////////////////////////////////////
+		
+//		// Création d'un objet Net
+//		Net myNet = new Net();
+//		
+//		// Importation des données
+//		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
+//		final double [][] x_train = imported_data.get(0);
+//		final double [][] y_train = imported_data.get(1);
+//		
+//		
+//		// On rajoute 3 layers au réseau
+//		myNet.addLayer("input", "sigmoid", 2, true);
+//		myNet.addLayer("hidden", "sigmoid", 4, true);
+//		myNet.addLayer("output", "sigmoid", 1, false);	
+//
+//		// Entrainement, 8000 epochs, learning_rate 0.5
+//		myNet.train(x_train, y_train, 8000, 0.5);
+//
+//		// On teste le réseau sur les mêmes données
+//		System.out.println("\n PREDICTIONS : ");
+//		System.out.println(Arrays.deepToString(myNet.testNetwork("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1)));
+//		
+//		// Print du réseau
+//		System.out.println(myNet.print());
+//		
+//		// Print du graphe d'erreur
+//		myNet.debugErrorGraph();
+
+/////////////////////////////////  /TEST 1 : XOR LOGIC GATE ////////////////////////////////////////////////////////////////	     
+
+		
+		
+		
+/////////////////////////////////  TEST 2 : IRIS DATASET ////////////////////////////////////////////////////////////////
+		// Création d'un objet Net
 		Net myNet = new Net();
 		
-//		//On rajoute 3 layers à l'objet
-//		myNet.addLayer("input", "sigmoid", 2, true);
-//		myNet.addLayer("hidden", "sigmoid", 4, true);
-////		myNet.addLayer("hidden", "sigmoid", 4, true);
-////		myNet.addLayer("hidden", "sigmoid", 4, true);
-//		myNet.addLayer("output", "sigmoid", 1, false);
-//		
-//
-//
-//		
-//		myNet.train(x_test, y_test,  10000, 0.5);	
-////		generateMap(1);
-////		myNet.print();
-//		
-//		//TEMPORAIRE POUR TESTER		
-////		myNet.netDataBase.print();
-//		
-//		double[][] test = {{0,1}};
-//		myNet.predict(test);
-///////
-//
-//		myNet.print();
-//		myNet.errorGraph();
-		
-//		//CSV IMPORT TESTING
-		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
-//		final double [][] x_test = imported_data.get(0);
-//		final double [][] y_test = imported_data.get(1);
-//		
-//		//On rajoute 3 layers à l'objet
-////		myNet.addLayer("input", "relu", 2, true);
-////		myNet.addLayer("hidden", "relu", 4, true);
-////		myNet.addLayer("output", "relu", 1, false);
-//		myNet.addLayer("input", "sigmoid", 2, true);
-//		myNet.addLayer("hidden", "sigmoid", 4, true);
-//		myNet.addLayer("output", "sigmoid", 1, false);
+		// Importation des données
+		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\Iris_TRAINING.csv", true, 1);
+		final double [][] x_train = imported_data.get(0);
+		final double [][] y_train = imported_data.get(1);
 		
 		
-		///////////  IRIS DATASET TEST /////////////////////
-//		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\Iris_TRAINING.csv", true, 1);
-		final double [][] x_test = imported_data.get(0);
-		final double [][] y_test = imported_data.get(1);
+		// On rajoute 3 layers au réseau
+		myNet.addLayer("input", "relu", 4, true);
+		myNet.addLayer("hidden", "relu", 10, true);
+		myNet.addLayer("output", "relu", 1, false);	
+
+		// Entrainement, 8000 epochs, learning_rate 0.5
+		myNet.train(x_train, y_train, 2000, 0.001);
+
+		// On teste le réseau sur les mêmes données
+		System.out.println("\n PREDICTIONS : ");
+		System.out.println(Arrays.deepToString(myNet.testNetwork("C:\\Users\\haas_\\Downloads\\P.O.O\\Iris_TESTING.csv", true, 1)));
 		
-		//On rajoute 3 layers à l'objet
-//		myNet.addLayer("input", "relu", 4, true);
-//		myNet.addLayer("hidden", "relu", 9, true);
-//		myNet.addLayer("output", "relu", 1, false);
-		myNet.addLayer("input", "sigmoid", 2, true);
-		myNet.addLayer("hidden", "sigmoid", 4, true);
-		myNet.addLayer("output", "sigmoid", 1, false);
-		///////////  IRIS DATASET TEST /////////////////////
+		// Print du réseau
+		System.out.println(myNet.print());
 		
+		// Print du graphe d'erreur
+		myNet.debugErrorGraph();
+/////////////////////////////////  /TEST 2 : IRIS DATASET ////////////////////////////////////////////////////////////////
 		
-		
-//		System.out.println(myNet.print());
-		
-		
-		myNet.train(x_test, y_test, 10000, 0.5);
-		
-//		double[][] test = {{5.1, 2.2, 3.2, 1.01}};
-//		System.out.println(myNet.predict(test));
-		double[][] test = {{5.4, 3.9, 1.3, 0.4}};
-		System.out.println(myNet.predict(test));
-		
-		myNet.testNetwork("C:\\Users\\haas_\\Downloads\\P.O.O\\Iris_TESTING.csv", true, 1);
-		
-//		System.out.println(myNet.print());
-		
-		myNet.errorGraph();
-//		
-//		System.out.println(myNet.networkError);
-	     
-// test commit
 	}
-	}
+}
