@@ -65,8 +65,7 @@ public class Net {
 	
 	/* Crée un JFrame représentant la moyenne de l'erreur du RNA pendant l'entraînement.
 	 */
-	@SuppressWarnings("deprecation")
-	public void errorGraph() {
+	public ChartPanel errorGraph() {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		XYSeries series1 = new XYSeries("RNA_error", false, true);
 		
@@ -84,6 +83,44 @@ public class Net {
 		JPanel jPanel1 = new JPanel();
 		jPanel1.setLayout(new java.awt.BorderLayout());
 		ChartPanel CP = new ChartPanel(chart);
+
+		return CP;
+		
+		//// NEXT LINES REMOVED FOR INTERGRATION WITH UI ////////////
+		
+//		jPanel1.add(CP,BorderLayout.CENTER);
+//		jPanel1.validate();
+//		
+//		 JFrame frame = new JFrame();
+//		 frame.add(jPanel1); 
+//		 frame.setSize(300, 300); 
+//	     frame.show(); 
+	}
+	
+	
+	@SuppressWarnings("deprecation")
+	public void debugErrorGraph() {
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series1 = new XYSeries("RNA_error", false, true);
+		
+		for (int i=0; i<networkError.size()-1; i++) {
+			series1.add(i, networkError.get(i));
+		}
+		dataset.addSeries(series1);
+		
+		
+		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "Epoch", "Error", dataset, PlotOrientation.VERTICAL, true, true, false);		
+//		JFreeChart chart = ChartFactory.createXYLineChart("Network_Error", "error", "Epoch", dataset, "horizontal", false, false, false);
+		
+		chart.createBufferedImage(600, 600);
+		
+		JPanel jPanel1 = new JPanel();
+		jPanel1.setLayout(new java.awt.BorderLayout());
+		ChartPanel CP = new ChartPanel(chart);
+
+		
+		//// NEXT LINES REMOVED FOR INTERGRATION WITH UI ////////////
+		
 		jPanel1.add(CP,BorderLayout.CENTER);
 		jPanel1.validate();
 		
@@ -92,6 +129,7 @@ public class Net {
 		 frame.setSize(300, 300); 
 	     frame.show(); 
 	}
+	
 	
 	
 	/* Retourne le Hadamard product de 2 matrices.
@@ -127,6 +165,66 @@ public class Net {
 		
 		return result;
 	}
+	
+	
+	public  RealMatrix reluPrime(RealMatrix m1) {
+		
+		int m1_index = netDataBase.weightedInputs.indexOf(m1);
+//		System.out.println("netDataBase.weightedInputs");
+//		System.out.println(netDataBase.weightedInputs);
+//		System.out.println("m1_index : " + m1_index);
+//		this.netDataBase.print();
+		
+		
+		RealMatrix corresponding_activation_matrix = netDataBase.activations.get(m1_index);
+		//Si la layer en question a un BiasNeuron, on ne veut pas son activation pour le calcul
+		if (layers.get(m1_index).hasBiasNeuron == true) {
+			//Ligne très longue, mais qui simplement supprime la dernière ligne de la matrice
+			corresponding_activation_matrix = corresponding_activation_matrix.getSubMatrix(0, corresponding_activation_matrix.getRowDimension()-2, 0, corresponding_activation_matrix.getColumnDimension()-1);
+		}
+		RealMatrix result = corresponding_activation_matrix.copy();
+		
+		
+		for (int row=0; row<m1.getRowDimension(); row++) {
+			if (m1.getEntry(row, 0) >= 0) {
+				m1.setEntry( row, 0, 1);
+			}
+			else {
+				m1.setEntry( row, 0, 0);
+			}	
+		}
+//		System.out.println("\n reluPrime of right_member");
+//		System.out.println(m1);
+		return m1;
+	}
+	
+	
+	public  RealMatrix lreluPrime(RealMatrix m1) {
+		
+		int m1_index = netDataBase.weightedInputs.indexOf(m1);
+		
+		RealMatrix corresponding_activation_matrix = netDataBase.activations.get(m1_index);
+		//Si la layer en question a un BiasNeuron, on ne veut pas son activation pour le calcul
+		if (layers.get(m1_index).hasBiasNeuron == true) {
+			//Ligne très longue, mais qui simplement supprime la dernière ligne de la matrice
+			corresponding_activation_matrix = corresponding_activation_matrix.getSubMatrix(0, corresponding_activation_matrix.getRowDimension()-2, 0, corresponding_activation_matrix.getColumnDimension()-1);
+		}
+		RealMatrix result = corresponding_activation_matrix.copy();
+		
+		
+		for (int row=0; row<m1.getRowDimension(); row++) {
+			if (m1.getEntry(row, 0) >= 0) {
+				m1.setEntry( row, 0, 1);
+			}
+			else {
+				m1.setEntry( row, 0, 0.01);
+			}	
+		}
+//		System.out.println("\n reluPrime of right_member");
+//		System.out.println(m1);
+		return m1;
+	}
+	
 	
 	
 	/* Rajoute un objet Layer à ArrayList<Layer> layers
@@ -172,6 +270,42 @@ public class Net {
 		return new_layer;
 	}
 
+	
+	public double[][] testNetwork(String file_path, boolean skip_first_row, int outputs_per_row) {
+		ArrayList<double[][]> imported = this.importCSV(file_path, skip_first_row, outputs_per_row);
+		double[][] x_test = imported.get(0);
+		double[][] y_test = imported.get(1);
+//		System.out.println(Arrays.deepToString(x_test));
+//		System.out.println(Arrays.deepToString(y_test));
+		double[][] predictions = new double[x_test.length][];
+		
+		// Boucle sur chaque ligne du .csv importé
+		for (int i=0; i<x_test.length; i++) {
+			predictions[i] = new double[y_test[0].length];
+			
+			//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
+			for (int j=0; j<layers.get(0).layerSize; j++) {
+				Neuron current_neuron = layers.get(0).neurons.get(j);
+				if (current_neuron instanceof RegularNeuron) {
+					current_neuron.activation = x_test[i][j];
+				}
+			}	
+//			System.out.println(this.print());
+			
+			for (Layer l : this.layers) {
+				l.forwardPropagate(x_test);
+			}
+//			System.out.println(layers.get(layers.size()-1).neurons.size());
+			for (int k=0; k<layers.get(layers.size()-1).neurons.size(); k++) {
+				predictions[i][k] = layers.get(layers.size()-1).neurons.get(k).activation;
+			}
+//			System.out.println("predictions : ");
+//			System.out.println(Arrays.deepToString(predictions));
+		}
+		
+		return predictions;
+	}
+	
 	
 	public String predict(double[][] x_test) {
 		double[] predicted = new double[x_test.length];
@@ -233,15 +367,24 @@ public class Net {
 		initializeActivations();
 		initializeWeightedInputs();
 		initializeLayerError();
+		
+		//// RESET MORE DOWN when errorcompute is fixed
+		ArrayList<RealMatrix> temp_batch_errors = new ArrayList<>();
+		ArrayList<RealMatrix> temp_batch_activations = new ArrayList<RealMatrix>();
+		double batch_error = 0.0;
 
 
 		//Boucle des Epochs
 		for (int e=0; e<epochs; e++) {
+			System.out.println(" \n EPOCH " + e);
 			this.batchErrors.clear();
 			this.batchActivations.clear();
 			
+//			System.out.println(this.print());
+			
 			// Boucle des Batch (chaque Batch correspond à une propagation en avant pour chaque entrée des données d'Input) 
 			for (int f=0; f<x_test.length; f++) {
+//				System.out.println(" \n BATCH " + f);
 //			for (int f=0; f<1; f++) {
 				
 				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
@@ -255,15 +398,17 @@ public class Net {
 				for (Layer l : this.layers) {
 					l.forwardPropagate(x_test);
 				}
+//				System.out.println(this.print());
+				
 				computeOutputError(y_test[f]);
 				backPropagateError();
 				
 
 				//On garde les erreurs et les activations du RNA pour chaque x du Batch
 				//On crée des variables "temp" pour éviter de faire des shallow_copy
-				ArrayList<RealMatrix> temp_batch_errors = new ArrayList<>(netDataBase.layerError);
+				temp_batch_errors = new ArrayList<>(netDataBase.layerError);
 //				ArrayList<RealMatrix> temp_batch_activations = new ArrayList<>(netDataBase.activations);
-				ArrayList<RealMatrix> temp_batch_activations = new ArrayList<RealMatrix>();
+				temp_batch_activations = new ArrayList<RealMatrix>();
 				for (int i=0; i<netDataBase.activations.size(); i++) {
 					temp_batch_activations.add(i, netDataBase.activations.get(i).copy());
 				}
@@ -274,7 +419,7 @@ public class Net {
 
 //				updateNetworkWeights(x_test, learning_rate);
 				
-//				System.out.println(" \n EPOCH " + e + " ##############################################################################################");
+//				System.out.println(" \n EPOCH " + e);
 //				this.print();
 //				this.netDataBase.print();
 				
@@ -284,9 +429,11 @@ public class Net {
 				
 
 			}
+//			System.out.println("\n batchErrors");
+//			System.out.println(batchErrors);
 			
 			// networkError utilisé pour faire le graph de l'erreur d'entraînement
-			double batch_error = 0.0;
+			batch_error = 0.0;
 			for (int i=0; i<this.batchErrors.size(); i++) {
 				batch_error = batch_error + Math.abs(batchErrors.get(i).get(layers.size()-1).getEntry(0, 0));
 //				System.out.println(batch_error);
@@ -295,12 +442,14 @@ public class Net {
 //			System.out.println(batch_error);
 			this.networkError.add(batch_error);
 			
-			
+//			System.out.println("batchErrors");
+//			System.out.println(batchErrors);
+//			System.out.println("networkError");
+//			System.out.println(networkError);
 			updateNetworkWeights(batchErrors, batchActivations, learning_rate);
 			
 			// SUPER LENT => VOIR POUR AMELIORER
 //			ApplicationWindow.ConsoleOutputAppend(" \n EPOCH " + e );
-			//System.out.println(" \n EPOCH " + e );		
 		}//Epochs for-loop
 
 	}
@@ -424,22 +573,48 @@ public class Net {
 		RealMatrix real_output_vector = new Array2DRowRealMatrix(real_output_array); 
 //		System.out.println(real_output_vector);
 		
+		// L'index de la dernière layer
 		int index = netDataBase.layerError.size()-1;
 		
-		//right_member correspond à [sigmoid(z) * (1-sigmoid(z))]
-		RealMatrix right_member = netDataBase.activations.get(index).copy();
-		// (-sigmoid(z))
-		right_member = right_member.scalarMultiply(-1);
-		// (1-sigmoid(z))
-		right_member = right_member.scalarAdd(1);
-		// [sigmoid(z) * (1-sigmoid(z))]
-		right_member = hadamardProduct(right_member, netDataBase.activations.get(index).copy()) ;
-//		System.out.println(right_member);
-		
+		RealMatrix right_member = new Array2DRowRealMatrix();
+		switch (this.layers.get(layers.size()-1).activation_function) {
+			case "sigmoid":
+				//right_member correspond à [sigmoid(z) * (1-sigmoid(z))]
+				right_member = netDataBase.activations.get(index).copy();
+				// (-sigmoid(z))
+				right_member = right_member.scalarMultiply(-1);
+				// (1-sigmoid(z))
+				right_member = right_member.scalarAdd(1);
+				// [sigmoid(z) * (1-sigmoid(z))]
+				right_member = hadamardProduct(right_member, netDataBase.activations.get(index).copy()) ;
+//				System.out.println(right_member);
+				break;
+				
+			case "relu":
+				// Ici on utilise weightedInputs car on veut z^l, et non a^l
+				right_member = netDataBase.weightedInputs.get(index).copy();
+//				System.out.println("\n right_member");
+//				System.out.println(right_member);
+				reluPrime(right_member);
+				break;
+			case "lrelu":
+				// Ici on utilise weightedInputs car on veut z^l, et non a^l
+				right_member = netDataBase.weightedInputs.get(index).copy();
+//				System.out.println("\n right_member");
+//				System.out.println(right_member);
+				lreluPrime(right_member);
+				break;
+				
+//				System.out.println("\n ReLU right_member");
+//			System.out.println(right_member);
 
+		}
+
+		
 		//left_member correspond à (a - y)
 		RealMatrix left_member = netDataBase.activations.get(index).copy().subtract(real_output_vector);
 //		netDataBase.layerError.set(index, output_error);
+//		System.out.println("\n left_member");
 //		System.out.println(left_member);
 		
 		//output_error = (a -y) dot [sigmoid(z) * (1-sigmoid(z))]
@@ -447,11 +622,14 @@ public class Net {
 		
 //		System.out.println("\n real_output_vector : " + real_output_vector);
 //		System.out.println("network output : " + netDataBase.activations.get(index));
-//		System.out.println("left_member : " + left_member);
+//		System.out.println("\n left_member : " + left_member);
+//		System.out.println("right_member : " + right_member);
 //		System.out.println("output_error : " + output_error);
 
 		//REMOVED FOR BATCH VERSION
 		netDataBase.layerError.set(index, output_error);
+//		System.out.println("\n netDataBase.layerError");
+//		System.out.println(netDataBase.layerError);
 //		System.out.println(output_error);
 //		return output_error;
 	}
@@ -475,8 +653,22 @@ public class Net {
 			
 			
 			RealMatrix right_member = netDataBase.weightedInputs.get(i).copy();
-			right_member = sigmoidPrime(right_member);
-//			System.out.println(right_member);
+			
+			// THIS is weird... makes all layers use last layer function
+//			switch (this.layers.get(layers.size()-1).activation_function) {        //ALTERNATIVE WAY?
+			switch (this.layers.get(i).activation_function) {
+				case "sigmoid":
+					right_member = sigmoidPrime(right_member);
+//					System.out.println(right_member);
+					break;
+				case "relu":
+					right_member = reluPrime(right_member);
+					break;
+				case "lrelu":
+					right_member = lreluPrime(right_member);
+					break;
+			}
+
 			
 			//layer_error = [(w^l+1)^T * error^l+1] dot sigmoidPrime(z^l)
 			RealMatrix layer_error = hadamardProduct(left_member, right_member);
@@ -604,7 +796,7 @@ public class Net {
 		
 		
 		
-		
+		////////OLD CODE : KEEP FOR REFERENCE /////////////////////
 		
 //		for (int i=layers.size()-1; i>0; i--) {	
 //			RealMatrix to_subtract = netDataBase.layerError.get(i).copy();
@@ -723,10 +915,10 @@ public class Net {
 		    		y_result[i][j] = y_import.get(i).get(j);
 		    	}
 		    }
-		    System.out.println("x_result");
-		    System.out.println(Arrays.deepToString(x_result));
-		    System.out.println("y_result");
-		    System.out.println(Arrays.deepToString(y_result));
+//		    System.out.println("x_result");
+//		    System.out.println(Arrays.deepToString(x_result));
+//		    System.out.println("y_result");
+//		    System.out.println(Arrays.deepToString(y_result));
 			
 		    // ArrayList retourné contenant 2 éléments : une liste d'Inputs, et une liste d'Outputs
 		    ArrayList<double[][]> result = new ArrayList<double[][]>();
@@ -777,39 +969,73 @@ public class Net {
 		// nombre pair?
 //		final double [][] x_test = {{1}, {3}, {12}, {11}, {2}, {4}, {8}, {10}, {32}, {5}, {9}};
 //		final double [][] y_test = {{0}, {0}, {1}, {0}, {1}, {1}, {1}, {1}, {1}, {0}, {0}};
+
 		
 		
-		//Création d'un objet Net
-		Net myNet = new Net();
 		
-//		//On rajoute 3 layers à l'objet
+		
+/////////////////////////////////  TEST 1 : XOR LOGIC GATE ////////////////////////////////////////////////////////////////
+		
+//		// Création d'un objet Net
+//		Net myNet = new Net();
+//		
+//		// Importation des données
+//		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
+//		final double [][] x_train = imported_data.get(0);
+//		final double [][] y_train = imported_data.get(1);
+//		
+//		
+//		// On rajoute 3 layers au réseau
 //		myNet.addLayer("input", "sigmoid", 2, true);
 //		myNet.addLayer("hidden", "sigmoid", 4, true);
-////		myNet.addLayer("hidden", "sigmoid", 4, true);
-////		myNet.addLayer("hidden", "sigmoid", 4, true);
-//		myNet.addLayer("output", "sigmoid", 1, false);
-//		
+//		myNet.addLayer("output", "sigmoid", 1, false);	
 //
+//		// Entrainement, 8000 epochs, learning_rate 0.5
+//		myNet.train(x_train, y_train, 8000, 0.5);
 //
+//		// On teste le réseau sur les mêmes données
+//		System.out.println("\n PREDICTIONS : ");
+//		System.out.println(Arrays.deepToString(myNet.testNetwork("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1)));
 //		
-//		myNet.train(x_test, y_test,  10000, 0.5);	
-////		generateMap(1);
-////		myNet.print();
+//		// Print du réseau
+//		System.out.println(myNet.print());
 //		
-//		//TEMPORAIRE POUR TESTER		
-////		myNet.netDataBase.print();
-//		
-//		double[][] test = {{0,1}};
-//		myNet.predict(test);
-///////
-//
-//		myNet.print();
-//		myNet.errorGraph();
-		
-		//CSV IMPORT TESTING
-		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
+//		// Print du graphe d'erreur
+//		myNet.debugErrorGraph();
 
-	     
-// test commit
+/////////////////////////////////  /TEST 1 : XOR LOGIC GATE ////////////////////////////////////////////////////////////////	     
+
+		
+		
+		
+/////////////////////////////////  TEST 2 : IRIS DATASET ////////////////////////////////////////////////////////////////
+		// Création d'un objet Net
+		Net myNet = new Net();
+		
+		// Importation des données
+		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\Iris_TRAINING.csv", true, 1);
+		final double [][] x_train = imported_data.get(0);
+		final double [][] y_train = imported_data.get(1);
+		
+		
+		// On rajoute 3 layers au réseau
+		myNet.addLayer("input", "relu", 4, true);
+		myNet.addLayer("hidden", "relu", 10, true);
+		myNet.addLayer("output", "relu", 1, false);	
+
+		// Entrainement, 8000 epochs, learning_rate 0.5
+		myNet.train(x_train, y_train, 2000, 0.001);
+
+		// On teste le réseau sur les mêmes données
+		System.out.println("\n PREDICTIONS : ");
+		System.out.println(Arrays.deepToString(myNet.testNetwork("C:\\Users\\haas_\\Downloads\\P.O.O\\Iris_TESTING.csv", true, 1)));
+		
+		// Print du réseau
+		System.out.println(myNet.print());
+		
+		// Print du graphe d'erreur
+		myNet.debugErrorGraph();
+/////////////////////////////////  /TEST 2 : IRIS DATASET ////////////////////////////////////////////////////////////////
+		
 	}
-	}
+}
