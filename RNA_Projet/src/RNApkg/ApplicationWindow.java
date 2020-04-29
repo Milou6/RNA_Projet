@@ -64,6 +64,11 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
+import javax.swing.JTabbedPane;
+import java.awt.Label;
+import java.awt.Component;
+import javax.swing.SwingConstants;
+import javax.swing.JButton;
 
 
 public class ApplicationWindow {
@@ -83,16 +88,18 @@ public class ApplicationWindow {
 	int nber_of_steps;
 	int final_step_size;
 	
-	
-	private Button btnPredict;				// Bouton permettant de tester le RNA sur une nouvelle série de donées
+	private Button btnPredict;				// Bouton permettant de tester le RNA sur une nouvelle sÃ©rie de donÃ©es
 	private Button btnPrint;				// Bouton qui ne fait rien pour l'instant
 	
-	private double [][] x_train;				// permet de stocker les données d'entrainement 
-	private double [][] y_train;				// permet de stocker les résultats des données d'entrainements
+	private double [][] x_train;				// permet de stocker les donnÃ©es d'entrainement 
+	private double [][] y_train;				// permet de stocker les rÃ©sultats des donnÃ©es d'entrainements
 	private double [][] train;
 	private static JPanel pnlAffichage;
-	private JLabel lblStartup;
-	
+
+	private JTabbedPane tabAffichage;
+	private JPanel pnlRNA;
+	private JPanel pnlGraph;
+	private JLabel lblTitre;
 	private LIMCouche coucheRNA;
 	
 
@@ -150,7 +157,7 @@ public class ApplicationWindow {
 		layerPanelList.clear();
 		
 		for (Layer l : myNet.layers) {
-			// Implémente les sous-panel qui représentent chaque layer
+			// ImplÃ©mente les sous-panel qui reprÃ©sentent chaque layer
 			JPanel layerPanel = new JPanel();
 			layerPanel.setLayout(new BoxLayout(layerPanel, BoxLayout.Y_AXIS));
 			
@@ -164,7 +171,7 @@ public class ApplicationWindow {
 			int layer_regular_neuron_count = l.layerSize;
 			if (l.hasBiasNeuron)  {layer_regular_neuron_count -= 1;}
 			
-			// crée les panels pour chaque neurone
+			// crÃ©e les panels pour chaque neurone
 			for (int i=0; i<layer_regular_neuron_count; i++) {
 //				System.out.println("yes");
 				DrawPanel neuronPanel = new DrawPanel(false);
@@ -185,14 +192,7 @@ public class ApplicationWindow {
 			pnlAffichage.updateUI();
 		}
 		
-	}
-	
-	
-	
-	
-	
-	
-	
+	}	
 	
 	/**
 	 * Lancement de l'application
@@ -211,7 +211,7 @@ public class ApplicationWindow {
 	}
 
 	/**
-	 * Permet de créer la fenêtre
+	 * Permet de créer la fenètre
 	 * 
 	 */
 	public ApplicationWindow() {
@@ -219,7 +219,7 @@ public class ApplicationWindow {
 	}
 
 	/**
-	 * Création et initialisation des différent composants de la fenêtre
+	 * Création et initialisation des différent composants de la fenètre
 	 * 
 	 */
 	private void initialize() {	
@@ -227,7 +227,7 @@ public class ApplicationWindow {
 		drawPanelList = new ArrayList<DrawPanel>();
 		layerPanelList = new ArrayList<JPanel>();
 		
-		//===fenêtre principal===
+		//===fenètre principal===
 		mainFrame = new JFrame();
 		mainFrame.setTitle("Projet RNA");
 		mainFrame.setBounds(100, 100, 800, 610);
@@ -261,8 +261,7 @@ public class ApplicationWindow {
 				
 		
 		mainFrame.getContentPane().add(pnlAffichage, "cell 0 0 1 7,grow");
-		
-		
+	
 ////////////////////// TEST DES GLASS-PANE ............. ///////////////////////////////////////////////////////////////////////7
 		
 //		JPanel glassPane = (JPanel) mainFrame.getGlassPane();
@@ -300,22 +299,46 @@ public class ApplicationWindow {
 		
 //		pnlAffichage.setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
 		
+		pnlAffichage.setLayout(new MigLayout("", "[595px,grow]", "[337px,grow]"));
+
+		// On créer des onglets "tab" pour afficher les différente partie de l'affichage sans les perdres
+		tabAffichage = new JTabbedPane(JTabbedPane.TOP);
+		//pnlAffichage.add(tabAffichage, "cell 0 0,grow");
 		
+		// Onglet qui acceuille l'affichage du RNA
+		pnlRNA = new JPanel();
+		//tabAffichage.addTab("Réseaux de neurone", null, pnlRNA, null);
+		pnlRNA.setLayout(new MigLayout("", "[97px]", "[25px,grow]"));
 		
+		// Onglet qui acceuille l'affiche du graphe d'erreur
+		pnlGraph = new JPanel();
+		//tabAffichage.addTab("Graph Erreur", null, pnlGraph, null);
+		pnlGraph.setLayout(new MigLayout("", "[grow]", "[grow]"));
+		
+		// On affiche tout d'abord un titre
+		lblTitre = new JLabel(">>-- Projet RNA --<<");
+		lblTitre.setHorizontalAlignment(SwingConstants.CENTER);
+		lblTitre.setFont(new Font("OCR A Extended", Font.BOLD, 42));
+		pnlAffichage.add(lblTitre, "cell 0 0,grow");	
+
 		
 //// BOUTON D' AJOUT DE COUCHE /////////////////////////////////////////////////////////////////////////////////
 		btnAddLayer = new Button("addLayer");
 		btnAddLayer.addActionListener(new ActionListener() {
 			/*
 			 * Le RNA (Net.java) doit avoir été créer avant d'utiliser le bouton
-			 * voir au fond après la création de l'interface graphique
+			 * voir au fond aprÃ¨s la création de l'interface graphique
 			 */
 			public void actionPerformed(ActionEvent e) {
 
 				btnPopLayer.setEnabled(true);
 				btnImportData.setEnabled(true);
 				//btnPrint.setEnabled(true);
-
+				// on retire le titre avant d'ajouter le première onglet
+				pnlAffichage.remove(lblTitre);
+				
+				pnlAffichage.add(tabAffichage, "cell 0 0,grow");
+				tabAffichage.addTab("Réseaux de neurone", null, pnlRNA, null);
 				
 				
 				//======Création du pop-up d'ajout de Layer======
@@ -392,6 +415,28 @@ public class ApplicationWindow {
 					drawLayerPanels();	
 				} 
 				else {
+
+					
+					// Implémente les sous-panel qui représentent chaque layer
+//					DrawPanel layerPanel = new DrawPanel(nbrNeurone);
+					
+//					JLabel layerPanelText = new JLabel("layerPane");
+//					layerPanel.add(layerPanelText);
+					
+//					Border compound;
+//					String panelNumber = Integer.toString(pnlRNA.getComponentCount());
+					// Chaque sous-paneau a un titre du style "LayerX"
+//					compound = BorderFactory.createTitledBorder("Layer" + panelNumber);
+//					layerPanel.setBorder(compound);
+					
+//					layerPanel.setBounds(0, 0, pnlAffichage.getWidth() , pnlAffichage.getHeight());
+//					layerPanel.setMaximumSize(new Dimension(150, pnlRNA.getHeight()));
+					
+//					pnlRNA.add(layerPanel);
+//					pnlRNA.updateUI();
+//					System.out.println(Arrays.deepToString(pnlAffichage.getComponents()));
+				
+//				} else {
 				    System.out.println("User canceled / closed the dialog, result = " + result);
 				}
 											
@@ -428,7 +473,7 @@ public class ApplicationWindow {
 				int result = JOptionPane.showConfirmDialog(null, inputs, "Pop Layer", JOptionPane.PLAIN_MESSAGE);
 				if (result == JOptionPane.OK_OPTION) {
 					System.out.println(result);
-					System.out.println("couche à supprimer : " + lstLayers.getSelectedValue().toString());
+					System.out.println("couche à supprimer : " + lstLayers.getSelectedValue().toString());
 				} else {
 				    System.out.println("User canceled / closed the dialog, result = " + result);
 				}
@@ -486,7 +531,7 @@ public class ApplicationWindow {
 					
 					// /Implémentation du Dialog pour l'importation de données ///////////////////////////////////////////
 				 
-					 // On appelle la méthode importCSV() avec les paramètres choisis par l'utilisateur dans le 
+					 // On appelle la méthode importCSV() avec les paramÃ¨tres choisis par l'utilisateur dans le 
 					 // Dialog ci-dessus.
 					if (result == JOptionPane.OK_OPTION) {
 						ArrayList<double[][]> donneesInput = myNet.importCSV(filePath, radLigne1Oui.isSelected(), listeOutputs.getSelectedValue());
@@ -518,7 +563,7 @@ public class ApplicationWindow {
 				
 				// Rassemble les choix du Dialog
 				final JComponent[] Entrainement = new JComponent[] {
-				        new JLabel("Nombre d'epochs d'entraînement : "),
+				        new JLabel("Nombre d'epochs d'entraÃ®nement : "),
 				        txtNbrEpochs,
 				        new JLabel("learning_rate : "),
 				        txtLearningRate
@@ -530,8 +575,9 @@ public class ApplicationWindow {
 					
 					// On appelle la methode errorGraph()
 					ChartPanel ErrorChartPanel = myNet.errorGraph();
+
 					
-					// On rajoute le graphe dans un JDialog séparé de la fenetre principale
+					// On rajoute le graphe dans un JDialog sÃ©parÃ© de la fenetre principale
 					JPanel chartPanel = new JPanel();
 					chartPanel.add(ErrorChartPanel);
 					
@@ -543,12 +589,21 @@ public class ApplicationWindow {
 					chartDialog.setVisible(true);
 					//
 					
-					// On rajoute le graphe retourné par cette méthode au Panel d'affichage
+					// On rajoute le graphe retournÃ© par cette mÃ©thode au Panel d'affichage
 //					pnlAffichage.removeAll();
 //					pnlAffichage.add(ErrorChartPanel);
 					
 					
 					pnlAffichage.validate();
+
+						
+					// On rajoute le graphe retourné par cette méthode au Panel du graphique
+//					tabAffichage.addTab("Graph Erreur", null, pnlGraph, null);
+					
+//					pnlGraph.removeAll();
+//					pnlGraph.add(ErrorChartPanel);
+//					pnlGraph.validate();
+//					tabAffichage.setSelectedIndex(1);
 					
 					btnPredict.setEnabled(true);
 					btnPrint.setEnabled(true);
@@ -669,7 +724,7 @@ public class ApplicationWindow {
 						
 					 int result = JOptionPane.showConfirmDialog(null, ImportationDonnees, "Importation : " + file.getName(), JOptionPane.PLAIN_MESSAGE);
 				
-					 // On appelle la méthode importCSV() avec les paramètres choisis par l'utilisateur dans le 
+					 // On appelle la méthode importCSV() avec les paramÃ¨tres choisis par l'utilisateur dans le 
 					 // Dialog ci-dessus.
 					if (result == JOptionPane.OK_OPTION) {
 						double[][] prediction = myNet.testNetwork(filePath, radLigne1Oui.isSelected(), listeOutputs.getSelectedValue());
@@ -708,12 +763,8 @@ public class ApplicationWindow {
 		txtConsoleOutput.setForeground(Color.GREEN);
 		txtConsoleOutput.setBackground(Color.BLACK);
 		txtConsoleOutput.setText("Sortie Console :");
-		mainFrame.getContentPane().add(txtConsoleOutput, "cell 0 7 3 1,grow");
+		mainFrame.getContentPane().add(txtConsoleOutput, "flowy,cell 0 7 3 1,grow");
 		
-		
-		
-		
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//===création du résaux de neurone===
 		myNet = new Net();
 		txtConsoleOutput.append("\n Résaux de neurones créé");
