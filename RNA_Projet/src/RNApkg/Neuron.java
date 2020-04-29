@@ -1,4 +1,3 @@
-// test commit
 package RNApkg;
 
 import java.util.Arrays;

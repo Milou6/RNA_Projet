@@ -1,4 +1,3 @@
-//test
 package RNApkg;
 
 import java.util.ArrayList;
@@ -8,7 +7,7 @@ import java.util.Arrays;
 import org.apache.commons.math3.linear.*;
 
 
-/* Classe qui est connectée à un objet de la classe Net lors de son initialisation.
+/* Classe qui est connectï¿½e ï¿½ un objet de la classe Net lors de son initialisation.
 * 
 * Rassemble les informations du RNA sous forme de matrices pour faciliter les calculs de
 * forward- et back-propagation.
@@ -19,7 +18,13 @@ import org.apache.commons.math3.linear.*;
 * 
 * ArrayList<RealMatrix> activations : Liste de matrices 1D (vecteurs) contenant les activations de chaque Layer du RNA
 * 
-* Net parent : Référence à l'objet Net connecté
+* ArrayList<RealMatrix> weightedInputs : Garde des matrices de la valeur de tous les neurones avant l'appilcation de la
+* 										 fonction d'activation ( weighted input = z )
+* 
+* ArrayList<RealMatrix> layerError : garde des matrices reprÃ©sentant l'erreur de chaque layer.
+* 									 (nÃ©cessaire pour le calcul de la back-prop)
+* 
+* Net parent : Reference a l'objet Net connecte
 */
 public class DataBase {
 	ArrayList<RealMatrix> weights;
@@ -102,7 +107,7 @@ public class DataBase {
 	  
   
 	
-	/* Prends les poids stockés dans DataBase.weights et les envoie aux neurones
+	/* Prends les poids stockes dans DataBase.weights et les envoie aux neurones
 	* correspondants du RNA.
 	*/
 	public void sendWeightsToNeurons() {
@@ -116,7 +121,7 @@ public class DataBase {
 	}
 	
 	
-	/* Prends les ativations stockées dans DataBase.activations et les envoie aux neurones
+	/* Prends les ativations stockees dans DataBase.activations et les envoie aux neurones
 	* correspondants du RNA.
 	*/
 	public void sendActivationsToNeurons() {
@@ -153,7 +158,6 @@ public class DataBase {
 }
 
 
-// Salut j'aime les pattes, mais je préfère les patates
 
 
 
