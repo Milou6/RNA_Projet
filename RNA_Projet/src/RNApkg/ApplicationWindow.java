@@ -84,6 +84,11 @@ public class ApplicationWindow {
 	ArrayList<ArrayList<Point>> neuronCoords;
 	ArrayList<ArrayList<int[]>> neuronPanelDimensions;
 	
+//	int StepTrainEpochs;
+	double StepTrainLearningRate;
+	int StepTrainEpochsPerStep;
+	int StepTrainNumberOfSteps;
+	int StepTrainLastStepSize;
 	
 	
 	
@@ -92,21 +97,20 @@ public class ApplicationWindow {
 	public void printNeuronValues() {
 		
 		// Boucle sur les layerPanel
-		System.out.println("pnlAffichage.getComponentCount()" + pnlAffichage.getComponentCount());
 		for (int i=0; i<layerPanelList.size(); i++) {
 			JPanel current_layer_panel = layerPanelList.get(i);
 //			Component current_layer_panel = pnlAffichage.getComponent(i);
 //			current_layer_panel.
 			for (int j=0; j<current_layer_panel.getComponentCount(); j++) {
-				System.out.println(myNet.netDataBase.activations.get(i).getEntry(j, 0));
+//				System.out.println(myNet.netDataBase.activations.get(i).getEntry(j, 0));
 				JPanel current_neuron_panel = (JPanel) current_layer_panel.getComponent(j);
 				
 				JTextField neuronValue = new JTextField(String.format("%.4f", myNet.netDataBase.activations.get(i).getEntry(j, 0)));
+				neuronValue.setEditable(false);
 				current_neuron_panel.removeAll();
-				current_neuron_panel.add(neuronValue);
-				
+				current_neuron_panel.add(neuronValue);				
 //				current_neuron_panel.add(new line());
-////			current_neuron_panel.repaint();
+//				current_neuron_panel.repaint();
 //				pnlAffichage.updateUI();
 			}
 		}
@@ -217,76 +221,79 @@ public class ApplicationWindow {
 		layerPanelList.clear();
 		int index = 0;
 		
-		// CALCUL DES DIMENSIONS POUR LES PANELS/////////////////
-		int panel_width = pnlAffichage.getWidth() / myNet.layers.size();
-		int panel_height = 0;
-		panel_height = (pnlAffichage.getHeight());
-//		System.out.println("panel_width : " + panel_width);
-//		System.out.println("panel_height : " + panel_height);
-		//  /CALCUL DES DIMENSIONS POUR LES PANELS///////////////
-
-		// Boucle sur les Layers
-		for (Layer l : myNet.layers) {
-			ArrayList<int[]> list = new ArrayList<int[]>();
-			
-			// Implémente les sous-panel qui représentent chaque layer
-			JPanel layerPanel = new JPanel();
-			layerPanel.setLayout(new BoxLayout(layerPanel, BoxLayout.Y_AXIS));
-			
-			// On rajoute une bordure à ces sous-panels
-			Border compound;
-			String panelNumber = Integer.toString(pnlAffichage.getComponentCount());
-			compound = BorderFactory.createTitledBorder("Layer" + panelNumber);
-			layerPanel.setBorder(compound);
-			
-			// On dessinera les BiasNeuron d'une autre couleur
-			int layer_regular_neuron_count = l.layerSize;
-			if (l.hasBiasNeuron)  {layer_regular_neuron_count -= 1;}
-			DrawPanel neuronPanel = new DrawPanel(false);
-			
-			// Crée les panels pour chaque RegularNeuron
-			for (int i=0; i<layer_regular_neuron_count; i++) {
-			// L'attribut "false" fait qu'on dessine un neurone en BLEU
-				neuronPanel = new DrawPanel(false);
-
-				// On garde les coordonnées du RegularNeuron
-				int x = neuronPanel.getX();
-				int y = neuronPanel.getY();
-				layerPanel.add(neuronPanel);
+		if (myNet.layers.size() != 0) {
+			// CALCUL DES DIMENSIONS POUR LES PANELS/////////////////
+			int panel_width = pnlAffichage.getWidth() / myNet.layers.size();
+			int panel_height = 0;
+			panel_height = (pnlAffichage.getHeight());
+	//		System.out.println("panel_width : " + panel_width);
+	//		System.out.println("panel_height : " + panel_height);
+			//  /CALCUL DES DIMENSIONS POUR LES PANELS///////////////
+	
+			// Boucle sur les Layers
+			for (Layer l : myNet.layers) {
+				ArrayList<int[]> list = new ArrayList<int[]>();
 				
-				int[] coords = new int[2];
-				coords[0] = x;
-				coords[1] = y;
-				int[] stored_coords = coords;
-				list.add(stored_coords.clone());
+				// Implémente les sous-panel qui représentent chaque layer
+				JPanel layerPanel = new JPanel();
+				layerPanel.setLayout(new BoxLayout(layerPanel, BoxLayout.Y_AXIS));
+				
+				// On rajoute une bordure à ces sous-panels
+				Border compound;
+				String panelNumber = Integer.toString(pnlAffichage.getComponentCount());
+				compound = BorderFactory.createTitledBorder("Layer" + panelNumber);
+				layerPanel.setBorder(compound);
+				
+				// On dessinera les BiasNeuron d'une autre couleur
+				int layer_regular_neuron_count = l.layerSize;
+				if (l.hasBiasNeuron)  {layer_regular_neuron_count -= 1;}
+				DrawPanel neuronPanel = new DrawPanel(false);
+				
+				// Crée les panels pour chaque RegularNeuron
+				for (int i=0; i<layer_regular_neuron_count; i++) {
+				// L'attribut "false" fait qu'on dessine un neurone en BLEU
+					neuronPanel = new DrawPanel(false);
+	
+					// On garde les coordonnées du RegularNeuron
+					int x = neuronPanel.getX();
+					int y = neuronPanel.getY();
+					layerPanel.add(neuronPanel);
+					
+					int[] coords = new int[2];
+					coords[0] = x;
+					coords[1] = y;
+					int[] stored_coords = coords;
+					list.add(stored_coords.clone());
+				}
+					
+				// Rajoute les BiasNeuron
+				if (l.hasBiasNeuron) {
+				// L'attribut "true" fait qu'on dessine un neurone en ROSE
+					neuronPanel = new DrawPanel(true);
+					layerPanel.add(neuronPanel);
+					
+					// On garde les coordonnées du BiasNeuron
+					int x = neuronPanel.getX();
+					int y = neuronPanel.getY();
+					layerPanel.add(neuronPanel);
+					
+					int[] coords = new int[2];
+					coords[0] = x;
+					coords[1] = y;
+					int[] stored_coords = coords;
+					list.add(stored_coords.clone());
+				}
+				layerPanel.setBounds( ( (pnlAffichage.getWidth()/myNet.layers.size()) * index) , 0, panel_width, panel_height/*(100 * l.layerSize)*/ );
+				
+				pnlAffichage.add(layerPanel, JLayeredPane.DEFAULT_LAYER);
+				layerPanelList.add(layerPanel);
+				layerPanel.updateUI();
+				pnlAffichage.updateUI();
+				
+				index += 1;
 			}
-				
-			// Rajoute les BiasNeuron
-			if (l.hasBiasNeuron) {
-			// L'attribut "true" fait qu'on dessine un neurone en ROSE
-				neuronPanel = new DrawPanel(true);
-				layerPanel.add(neuronPanel);
-				
-				// On garde les coordonnées du BiasNeuron
-				int x = neuronPanel.getX();
-				int y = neuronPanel.getY();
-				layerPanel.add(neuronPanel);
-				
-				int[] coords = new int[2];
-				coords[0] = x;
-				coords[1] = y;
-				int[] stored_coords = coords;
-				list.add(stored_coords.clone());
-			}
-			layerPanel.setBounds( ( (pnlAffichage.getWidth()/myNet.layers.size()) * index) , 0, panel_width, panel_height/*(100 * l.layerSize)*/ );
-			
-			pnlAffichage.add(layerPanel, JLayeredPane.DEFAULT_LAYER);
-			layerPanelList.add(layerPanel);
-			layerPanel.updateUI();
-			pnlAffichage.updateUI();
-			
-			index += 1;
 		}
+
 	}
 	
 
@@ -330,6 +337,12 @@ public class ApplicationWindow {
 		layerPanelList = new ArrayList<JPanel>();
 		neuronCoords = new ArrayList<ArrayList<Point>>();
 		neuronPanelDimensions = new ArrayList<ArrayList<int[]>>();
+		
+//		StepTrainEpochs = 0;
+		StepTrainLearningRate = 0.0;
+		StepTrainEpochsPerStep = 0;
+		StepTrainNumberOfSteps = 0;
+		StepTrainLastStepSize = 0;
 		
 		//===fenêtre principale===
 		mainFrame = new JFrame();
@@ -399,12 +412,6 @@ public class ApplicationWindow {
 			 * voir au fond après la création de l'interface graphique
 			 */
 			public void actionPerformed(ActionEvent e) {
-
-				btnPopLayer.setEnabled(true);
-				btnImportData.setEnabled(true);
-				//btnPrint.setEnabled(true);
-
-				
 				
 				//======Création du pop-up d'ajout de Layer======
 				//===Liste type de layer===
@@ -482,13 +489,15 @@ public class ApplicationWindow {
 					drawArrows();
 					///////// Dessine les layerPanel ////////////////
 					
+					
+					
+					btnPopLayer.setEnabled(true);
+					btnImportData.setEnabled(true);
+					btnPrint.setEnabled(true);
 				} 
 				else {
 				    System.out.println("User canceled / closed the dialog, result = " + result);
 				}
-											
-				btnPopLayer.setEnabled(true);
-				btnImportData.setEnabled(true);
 			}
 		});
 		mainFrame.getContentPane().add(btnAddLayer, "cell 2 0,grow");
@@ -526,8 +535,8 @@ public class ApplicationWindow {
 				}
 			}
 		});
-		btnPopLayer.setEnabled(false);
 		mainFrame.getContentPane().add(btnPopLayer, "cell 2 1,grow");
+		btnPopLayer.setEnabled(false);
 		
 		
 		
@@ -585,8 +594,12 @@ public class ApplicationWindow {
 						x_train = donneesInput.get(0);
 						y_train = donneesInput.get(1);
 						
-						txtConsoleOutput.append("\n Importations efféctuées");
+						txtConsoleOutput.append("\n");
+						txtConsoleOutput.append("\n Importations efféctuées ( " + file.getName() + " )");
+						
+						
 						btnTrain.setEnabled(true);
+						btnStepTrain.setEnabled(true);
 					}
 					else {
 					    System.out.println("User canceled / closed the dialog, result = " + result);
@@ -633,7 +646,7 @@ public class ApplicationWindow {
 					chartDialog.add(chartPanel);
 					chartDialog.setSize(chartDialog.getPreferredSize());
 					chartDialog.setVisible(true);
-					//
+					
 					
 					// On rajoute le graphe retourné par cette méthode au Panel d'affichage
 //					pnlAffichage.removeAll();
@@ -644,6 +657,9 @@ public class ApplicationWindow {
 					
 					btnPredict.setEnabled(true);
 					btnPrint.setEnabled(true);
+					btnStepTrain.setEnabled(false);
+					btnAddLayer.setEnabled(false);
+					btnPopLayer.setEnabled(false);
 					
 				} else {
 				    System.out.println("User canceled / closed the dialog, result = " + result);
@@ -660,59 +676,142 @@ public class ApplicationWindow {
 		
 //// BOUTON DE STEP-TRAIN /////////////////////////////////////////////////////////////////////////////////////////////////////////	
 		
-		btnStepTrain = new Button("Step-train");
-		btnNext = new Button("NEXT");
-//		btnStepTrain.setEnabled(false);
-		
+		btnStepTrain = new Button("Step-train");		
 		btnStepTrain.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
-				btnNext.setEnabled(true);
-				myNet.addLayer("input", "sigmoid", 2, true);
-				myNet.addLayer("hidden", "sigmoid", 4, true);
-				myNet.addLayer("output", "sigmoid", 1, false);
 				
-				clearArrows();
-				drawLayerPanels();
-				drawArrows();
-				
-				ArrayList<double[][]> donneesInput = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
-				x_train = donneesInput.get(0);
-				y_train = donneesInput.get(1);
+
 				
 				
-				//TEMP
-				step = 1000;
-				nber_of_steps = 5000 / step;
-				final_step_size =   5000%step;
+				JTextField txtNbrEpochs = new JTextField("5000");
+				JTextField txtLearningRate = new JTextField("0.5");
+				JTextField NbeEpochsParStep = new JTextField("1000");
 				
-				// Premier step automatique
-				myNet.train(x_train, y_train, step, 0.5);
-	
-			}
-		});
-		
-		mainFrame.getContentPane().add(btnStepTrain, "cell 2 4,grow");
-		mainFrame.getContentPane().add(btnNext, "cell 2 5,grow");
-		
-		
-		btnNext.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (nber_of_steps>0) {
-					myNet.stepTrain(x_train, y_train, step, 0.5);
-					nber_of_steps -= 1;
-										
+				// Rassemble les choix du Dialog
+				final JComponent[] Entrainement = new JComponent[] {
+				        new JLabel("Nombre d'epochs d'entraînement : "),
+				        txtNbrEpochs,
+				        new JLabel("learning_rate : "),
+				        txtLearningRate,
+				        new JLabel("Epochs / Step : "),
+				        NbeEpochsParStep
+				};
+				int result = JOptionPane.showConfirmDialog(null, Entrainement, "Step-Train", JOptionPane.PLAIN_MESSAGE);
+				
+				if (result == JOptionPane.OK_OPTION) {
+					StepTrainEpochsPerStep = Integer.parseInt(NbeEpochsParStep.getText());
+					StepTrainLearningRate = Double.parseDouble(txtLearningRate.getText());
+					
+					StepTrainNumberOfSteps = Integer.parseInt(txtNbrEpochs.getText()) / Integer.parseInt(NbeEpochsParStep.getText()) - 1;
+					System.out.println(StepTrainNumberOfSteps);
+					StepTrainLastStepSize = Integer.parseInt(txtNbrEpochs.getText()) % Integer.parseInt(NbeEpochsParStep.getText());
+
+				
+				
+					// Le système fait déjà le premier Step d'entrainement
+					myNet.train(x_train, y_train, Integer.parseInt(NbeEpochsParStep.getText()), Double.parseDouble(txtLearningRate.getText()) );
+					
+					// On affiche les valeurs des neurones suite à ce premier Step
 					printNeuronValues();
 					
-//					pnlAffichage.getComponent(0).add(new line());
+					
+//				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
+//				// Changer le "false" dans la ligne sous ce bloc -->  btnStepTrain.setEnabled(false);
+
+//				btnNext.setEnabled(true);
+//				myNet.addLayer("input", "sigmoid", 2, true);
+//				myNet.addLayer("hidden", "sigmoid", 4, true);
+//				myNet.addLayer("output", "sigmoid", 1, false);
+//				
+//				StepTrainLearningRate = 0.5;
+//				StepTrainEpochsPerStep = 900;
+//				StepTrainNumberOfSteps = 5;
+//				StepTrainLastStepSize = 500;
+//				
+//				ArrayList<double[][]> donneesInput = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
+//				x_train = donneesInput.get(0);
+//				y_train = donneesInput.get(1);
+//				
+//				// Premier step automatique
+//				myNet.train(x_train, y_train, StepTrainEpochsPerStep, StepTrainLearningRate);
+//				
+//				clearArrows();
+//				drawLayerPanels();
+//				drawArrows();
+//				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
 					
 					
 					
+					
+					// On désactive les boutons suivants
+					btnStepTrain.setEnabled(false);
+					btnTrain.setEnabled(false);
+					btnAddLayer.setEnabled(false);
+					btnPopLayer.setEnabled(false);
+					
+					btnNext.setEnabled(true);
 				}
+				else {
+				    System.out.println("User canceled / closed the dialog, result = " + result);
+				}
+				
+		
 
 	
 			}
-		});
+		});		
+		mainFrame.getContentPane().add(btnStepTrain, "cell 2 4,grow");
+		btnStepTrain.setEnabled(false);
+		
+//// /BOUTON DE STEP-TRAIN /////////////////////////////////////////////////////////////////////////////////////////////////////////		
+		
+		
+		
+//// /BOUTON NEXT /////////////////////////////////////////////////////////////////////////////////////////////////////////	
+		btnNext = new Button("Next_Step");
+		btnNext.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				// Si l'on est pas au dernier Step, entrainer sur un Step complet
+				if (StepTrainNumberOfSteps > 0) {
+					myNet.stepTrain(x_train, y_train, StepTrainEpochsPerStep, StepTrainLearningRate);
+					printNeuronValues();
+					StepTrainNumberOfSteps -= 1;
+				}
+	
+	
+				// Si l'on est au dernier step, on re-entraine avec le nombre d'epochs restantes
+				if (StepTrainNumberOfSteps == 0) {
+					if (StepTrainLastStepSize > 0) {
+						myNet.stepTrain(x_train, y_train, StepTrainLastStepSize, StepTrainLearningRate);
+						printNeuronValues();
+					}
+					btnNext.setEnabled(false);
+				}
+				
+			
+					// On appelle la methode errorGraph()
+					ChartPanel ErrorChartPanel = myNet.errorGraph();
+					
+					// On rajoute le graphe dans un JDialog séparé de la fenetre principale
+					JPanel chartPanel = new JPanel();
+					chartPanel.add(ErrorChartPanel);
+					
+					JDialog chartDialog = new JDialog();
+					chartDialog.setLayout(new FlowLayout(BoxLayout.X_AXIS));
+					chartDialog.add(chartPanel);
+					chartDialog.setSize(chartDialog.getPreferredSize());
+					chartDialog.setVisible(true);	
+			}
+		});		
+		mainFrame.getContentPane().add(btnNext, "cell 2 5,grow");
+		btnNext.setEnabled(false);
+		
+//// /BOUTON NEXT /////////////////////////////////////////////////////////////////////////////////////////////////////////	
+		
+		
+		
 		
 		
 		
@@ -788,6 +887,7 @@ public class ApplicationWindow {
 		btnPrint.setEnabled(false);
 		btnPrint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				txtConsoleOutput.append("\n");
 				txtConsoleOutput.append(myNet.print());
 				//myNet.print();
 				//myNet.errorGraph();
@@ -796,7 +896,7 @@ public class ApplicationWindow {
 		mainFrame.getContentPane().add(btnPrint, "cell 2 6,grow");
 		
 		txtConsoleOutput = new TextArea();
-		txtConsoleOutput.setFont(new Font("OCR A Extended", Font.BOLD, 12));
+		txtConsoleOutput.setFont(new Font("OCR A Extended", Font.BOLD, 16));
 		txtConsoleOutput.setEditable(false);
 		txtConsoleOutput.setForeground(Color.GREEN);
 		txtConsoleOutput.setBackground(Color.BLACK);
@@ -809,7 +909,7 @@ public class ApplicationWindow {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//===création du résaux de neurone===
 		myNet = new Net();
-		txtConsoleOutput.append("\n Résaux de neurones créé");
+//		txtConsoleOutput.append("\n Résaux de neurones créé");
 		
 	}
 	

@@ -61,7 +61,7 @@ public class ExtPanel extends JComponent{
 	    		// Boucle sur tous les neurones de la layer SUIVANTE
 	    		for (int k=0; k<drawLinesStop; k++) {
 //	    		for (int k=0; k<neuronCoords.get(i+1).size(); k++) {
-	    			System.out.println("Boucle sur tous les neurones de la layer SUIVANTE");
+//	    			System.out.println("Boucle sur tous les neurones de la layer SUIVANTE");
 	    			
 	    			
 	    			// x1 et y1, les coordonnées du neurone d'arrivée de la ligne
