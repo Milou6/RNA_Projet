@@ -13,20 +13,21 @@ public class ExtPanel extends JComponent{
 	ArrayList<ArrayList<Point>> neuronCoords;
 	ArrayList<ArrayList<int[]>> neuronPanelDimensions;
 	JLayeredPane pnlAffichage;
+	boolean[] layerHasBiasNeuron;
 	
-	 public ExtPanel(ArrayList<ArrayList<Point>> neuronCoords, ArrayList<ArrayList<int[]>> neuronPanelDimensions, JLayeredPane pnlAffichage) {
-		 super();
-		 this.neuronCoords = neuronCoords;
-		 this.neuronPanelDimensions = neuronPanelDimensions;
-		 this.pnlAffichage = pnlAffichage;
+
+	public ExtPanel(ArrayList<ArrayList<Point>> neuronCoords, ArrayList<ArrayList<int[]>> neuronPanelDimensions, JLayeredPane pnlAffichage, boolean[] layerHasBiasNeuron) {	
+		super();
+			this.neuronCoords = neuronCoords;
+			this.neuronPanelDimensions = neuronPanelDimensions;
+			this.pnlAffichage = pnlAffichage;
+			this.layerHasBiasNeuron = layerHasBiasNeuron;
 	 }
 	 
-	 
-	  // Override paintComponent(): 
 
+	 @Override
 	  public void paintComponent (Graphics g)
 	  {
-	    // Always call super.paintComponent (g): 
 	    super.paintComponent(g);
 	    
 	    this.setLayout(new GridLayout(0, 1));
@@ -36,11 +37,6 @@ public class ExtPanel extends JComponent{
 	    
 	   	this.repaint();
 	    
-
-	    // drawString() is a Graphics method. 
-	    // Draw the string "Hello World" at location 100,100 
-//	    g.drawString ("Hello World!", 100, 100);
-//	    g.drawLine(66, 5, 300, 300);
 	    
 	    // Boucle sur les layers
 	    for (int i=0; i<neuronCoords.size()-1; i++) {
@@ -48,28 +44,40 @@ public class ExtPanel extends JComponent{
 	    	// Boucle sur neurones de cette layer
 	    	for (int j=0; j<neuronCoords.get(i).size(); j++) {
 	    		
-	    		int x0 = neuronCoords.get(i).get(j).x + (neuronPanelDimensions.get(0).get(0) [0] / 2)  + ( Math.min(Math.min(neuronPanelDimensions.get(0).get(0) [0], neuronPanelDimensions.get(0).get(0) [1]) - 10, 90) /2 ) ;
+	    		// x0 et y0, les coordonnées du neurone de départ de la ligne
+	    		int x0 = neuronCoords.get(i).get(j).x + (neuronPanelDimensions.get(i).get(j) [0] / 2)  + ( Math.min(Math.min(neuronPanelDimensions.get(0).get(0) [0], neuronPanelDimensions.get(0).get(0) [1]) - 10, 90) /2 ) ;
 //	    		int x0 = neuronCoords.get(i).get(j).x + (neuronPanelDimensions.get(0).get(0) [0] / 2) ;
-	    		int y0 = neuronCoords.get(i).get(j).y + (neuronPanelDimensions.get(0).get(0) [1] / 2);
+	    		int y0 = neuronCoords.get(i).get(j).y + (neuronPanelDimensions.get(i).get(j) [1] / 2);
+	    		
+	    		
+	    		// Si la Layer suivante a un neurone Biais, on ne va pas dessiner de lignes vers ce neurone
+	    		int drawLinesStop = 0;
+	    		drawLinesStop = neuronCoords.get(i+1).size();
+	    		if (layerHasBiasNeuron[i+1] == true) {
+	    			drawLinesStop -= 1;
+	    		}
+	    		
 	    		
 	    		// Boucle sur tous les neurones de la layer SUIVANTE
-	    		for (int k=0; k<neuronCoords.get(i+1).size(); k++) {
+	    		for (int k=0; k<drawLinesStop; k++) {
+//	    		for (int k=0; k<neuronCoords.get(i+1).size(); k++) {
+	    			System.out.println("Boucle sur tous les neurones de la layer SUIVANTE");
 	    			
+	    			
+	    			// x1 et y1, les coordonnées du neurone d'arrivée de la ligne
 	    			int x1 = neuronCoords.get(i+1).get(k).x + (neuronPanelDimensions.get(i+1).get(0) [0] / 2) - ( Math.min(Math.min(neuronPanelDimensions.get(i+1).get(0) [0], neuronPanelDimensions.get(i+1).get(0) [1]) - 10, 90) / 2) ;
 //	    			int x1 = neuronCoords.get(i+1).get(k).x + (neuronPanelDimensions.get(i+1).get(0) [0] / 2) ;
 	    			int y1 = neuronCoords.get(i+1).get(k).y + (neuronPanelDimensions.get(i+1).get(0) [1] / 2) ;
 					
+	    			
+	    			// On dessine la ligne entre les 2 neurones
 					g.drawLine(x0, y0, x1, y1);
 					
 	    		}
-	    		
 	    	}
 	    }
-	    
-	    
+	    // On met à jour le Panel
 	    this.updateUI();
-	    // Let's find out when paintComponent() is called. 
-//	    System.out.println ("Inside paintComponent");
 	  }
 	 
 	 

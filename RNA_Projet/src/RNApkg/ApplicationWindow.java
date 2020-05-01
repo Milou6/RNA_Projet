@@ -1,36 +1,20 @@
 package RNApkg;
-//testy.....
 
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 
 import javax.swing.JFrame;
 
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import net.miginfocom.swing.MigLayout;
 import javax.swing.SwingUtilities;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.TextArea;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.WindowListener;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,9 +26,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.jfree.chart.ChartPanel;
+
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
@@ -54,22 +40,13 @@ import java.awt.Font;
 
 
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.LayoutManager;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
 
 
 public class ApplicationWindow {
@@ -99,15 +76,16 @@ public class ApplicationWindow {
 	private double [][] y_train;				// permet de stocker les résultats des données d'entrainements
 	private double [][] train;
 	private static JLayeredPane pnlAffichage;
-	private JLabel lblStartup;
 	
 	private LIMCouche coucheRNA;
 	
 
 	ArrayList<JPanel> layerPanelList;
-//	ArrayList<ArrayList<DrawPanel>> neuronPanels;
 	ArrayList<ArrayList<Point>> neuronCoords;
 	ArrayList<ArrayList<int[]>> neuronPanelDimensions;
+	
+	
+	
 	
 	/* Printe la valeur dans chaque neurone de l'affichage
 	 */
@@ -135,118 +113,98 @@ public class ApplicationWindow {
 	}
 	
 	
-
+	/* Efface toutes les flèches dessinées auparavant.
+	 * Utilisé quand l'application est re-dimensionnée.
+	 */
 	public void clearArrows() {
-		
-//		pnlAffichage.remove(arrowPanel);
-
-
-
 		neuronCoords.clear();
 		neuronPanelDimensions.clear();
-//		arrowPanel = drawArrows();
 
 		ArrayList<ArrayList<Point>> emptyList = new ArrayList<ArrayList<Point>>();
-//		
-	   	ExtPanel returnPanel = new ExtPanel(emptyList, neuronPanelDimensions, pnlAffichage);
-//    	
+		boolean[] temp_boolean = {true,true,true};
+	
+		// On re-crée un nouveau ExtPanel, en lui donnant des listes vides pour qu'il ne dessine aucune flèche
+	   	ExtPanel returnPanel = new ExtPanel(emptyList, neuronPanelDimensions, pnlAffichage, temp_boolean);
+  	
+  		// On remplace l'ExtPanel du PnlAffichage par ce nouveau ExtPanel vide.
     	arrowPanel = returnPanel;
 	    arrowPanel.setLayout(new GridLayout(0, 1));
 	    arrowPanel.setPreferredSize(pnlAffichage.getPreferredSize());
 	    arrowPanel.setBounds(0, 0, pnlAffichage.getWidth(), pnlAffichage.getHeight());
-//	    testPanel.setBackground(Color.PINK);
 	    arrowPanel.setVisible(true);
 	    pnlAffichage.add(arrowPanel, JLayeredPane.POPUP_LAYER);
-	    
-//	    testPanel.setMinimumSize(new Dimension(300, 300));
 	    
 	    pnlAffichage.updateUI();
 	}
   
     
-    public ExtPanel drawArrows() {
-    	
-
-//    	
-//    	System.out.println("neuronCOORDS :");
-//    	System.out.println(Arrays.toString(neuronCoords.get(0).get(2)));
-    	
+    /* Dessine les flèches connectant les neurones du réseau.
+	 */
+    public void drawArrows() {
 		// Boucle sur les layerPanel
 		for (int i=0; i<layerPanelList.size(); i++) {
 			JPanel current_layer_panel = layerPanelList.get(i);
 			ArrayList<Point> layer_points = new ArrayList<Point>();
 			ArrayList<int[]> dimensionsList = new ArrayList<int[]>();
-//			Component current_layer_panel = pnlAffichage.getComponent(i);
-//			current_layer_panel.
 
-
+			// Boucle sur les panel Neurone de chaque layerPanel
 			for (int j=0; j<current_layer_panel.getComponentCount(); j++) {
 				JPanel current_neuron_panel = (JPanel) current_layer_panel.getComponent(j);
 				
-//				int panelWidth = new int;
-//				int panelHeight = new int;
-//				int panelWidth = current_neuron_panel.getWidth();
-//				int panelHeight = current_neuron_panel.getHeight();
-				
-				
-//				int[] clonedList = new int[2];
+				// On garde les dimensions de chaque Panel
 				int[] panelDimensions = new int[2];
 				panelDimensions[0] = current_neuron_panel.getWidth();
 				panelDimensions[1] = current_neuron_panel.getHeight();
-				
-//				String one = Integer.toString(panelWidth);
-//				String two = Integer.toString(panelHeight);
-//				int[] test = new int[2];
-//				test[0] = Integer.parseInt(one);
-//				test[1] = Integer.parseInt(two);
-				
-				
-//				clonedList = panelDimensions.clone();
-//				dimensionsList.add(panelDimensions.clone());
 				dimensionsList.add(Arrays.copyOf(panelDimensions, 2));
 		
 
+				// On garde aussi les coordonnées de chaque panel.
+				// Mais on veut ces coordonnées par rapport au système de coords. de PnlAffichage, 
+				// donc on utilise la méthode .convertPoint()
 				Point convertedPoint = SwingUtilities.convertPoint(current_neuron_panel, new Point(0,0), pnlAffichage);
-//				System.out.println(convertedPoint);
 				layer_points.add((Point)convertedPoint.clone());
-				
-//				current_neuron_panel.add(new line());
-////			current_neuron_panel.repaint();
-//				pnlAffichage.updateUI();
+
 			}
+			// On garde le tout dans des listes
 			neuronCoords.add(layer_points);
 			neuronPanelDimensions.add(dimensionsList);
 		}
+		// POUR DEBUG
+//		for (int i=0; i<neuronCoords.size(); i++) {
+//			System.out.println("\n layer " + i);
+//			for (int j=0; j<neuronCoords.get(i).size(); j++) {
+//				System.out.println(neuronCoords.get(i).get(j));
+//			}
+//		}
+//		
+//		for (int i=0; i<neuronPanelDimensions.size(); i++) {
+//			System.out.println("\n DIMENSIONS " + i);
+//			for (int j=0; j<neuronPanelDimensions.get(i).size(); j++) {
+//				System.out.println(Arrays.toString(neuronPanelDimensions.get(i).get(j)));
+//			}
+//		}
 		
-		for (int i=0; i<neuronCoords.size(); i++) {
-			System.out.println("\n layer " + i);
-			for (int j=0; j<neuronCoords.get(i).size(); j++) {
-				System.out.println(neuronCoords.get(i).get(j));
+		
+//		// On doit passer au constructeur de ExtPanel l'info sur les neurones Biais du réseau
+		boolean[] layerHasBiasNeuron = new boolean[myNet.layers.size()];
+		for (Layer l : myNet.layers) {
+			if (l.hasBiasNeuron == true) {
+				layerHasBiasNeuron[myNet.layers.indexOf(l)] = true;
 			}
+			else {layerHasBiasNeuron[myNet.layers.indexOf(l)] = false;}
 		}
-		
-		for (int i=0; i<neuronPanelDimensions.size(); i++) {
-			System.out.println("\n DIMENSIONS " + i);
-			for (int j=0; j<neuronPanelDimensions.get(i).size(); j++) {
-				System.out.println(Arrays.toString(neuronPanelDimensions.get(i).get(j)));
-			}
-		}
-		
-		
-    	ExtPanel returnPanel = new ExtPanel(neuronCoords, neuronPanelDimensions, pnlAffichage);
-    	
+
+		// On appelle le constructeur de ExtPanel, en lui donnant les infos sur les coordonnées/dimensions des panels
+    	ExtPanel returnPanel = new ExtPanel(neuronCoords, neuronPanelDimensions, pnlAffichage, layerHasBiasNeuron);
+   	
     	arrowPanel = returnPanel;
 	    arrowPanel.setLayout(new GridLayout(0, 1));
 	    arrowPanel.setPreferredSize(pnlAffichage.getPreferredSize());
 	    arrowPanel.setBounds(0, 0, pnlAffichage.getWidth(), pnlAffichage.getHeight());
-//	    testPanel.setBackground(Color.PINK);
 	    arrowPanel.setVisible(true);
 	    pnlAffichage.add(arrowPanel, JLayeredPane.POPUP_LAYER);
-//	    testPanel.setMinimumSize(new Dimension(300, 300));
 	    
-	    pnlAffichage.updateUI();
-		return returnPanel;
-    	
+	    pnlAffichage.updateUI();    	
     }
     
 
@@ -254,57 +212,46 @@ public class ApplicationWindow {
 	/* Printe les couches du RNA et les neurones dans chaque couche.
 	 * Chaque neurone est un sous-panel dans un layerPanel.
 	 */
-	public void drawLayerPanels() {
-		
+	public void drawLayerPanels() {		
 		pnlAffichage.removeAll();
 		layerPanelList.clear();
+		int index = 0;
 		
 		// CALCUL DES DIMENSIONS POUR LES PANELS/////////////////
 		int panel_width = pnlAffichage.getWidth() / myNet.layers.size();
 		int panel_height = 0;
-//		for (Layer l : myNet.layers) {
-//			panel_height = Math.max(panel_height, l.layerSize);
-//		}
-//		panel_height *= 100;
 		panel_height = (pnlAffichage.getHeight());
-		System.out.println("panel_width : " + panel_width);
-		System.out.println("panel_height : " + panel_height);
+//		System.out.println("panel_width : " + panel_width);
+//		System.out.println("panel_height : " + panel_height);
 		//  /CALCUL DES DIMENSIONS POUR LES PANELS///////////////
 
-		int index = 0;
+		// Boucle sur les Layers
 		for (Layer l : myNet.layers) {
-			
 			ArrayList<int[]> list = new ArrayList<int[]>();
 			
-			System.out.println("here");
 			// Implémente les sous-panel qui représentent chaque layer
 			JPanel layerPanel = new JPanel();
 			layerPanel.setLayout(new BoxLayout(layerPanel, BoxLayout.Y_AXIS));
 			
-			
+			// On rajoute une bordure à ces sous-panels
 			Border compound;
 			String panelNumber = Integer.toString(pnlAffichage.getComponentCount());
-			// Chaque sous-paneau a un titre du style "LayerX"
 			compound = BorderFactory.createTitledBorder("Layer" + panelNumber);
 			layerPanel.setBorder(compound);
 			
+			// On dessinera les BiasNeuron d'une autre couleur
 			int layer_regular_neuron_count = l.layerSize;
 			if (l.hasBiasNeuron)  {layer_regular_neuron_count -= 1;}
-			
 			DrawPanel neuronPanel = new DrawPanel(false);
 			
-			// crée les panels pour chaque neurone
+			// Crée les panels pour chaque RegularNeuron
 			for (int i=0; i<layer_regular_neuron_count; i++) {
-				System.out.println("reg_neuron");
-//				System.out.println("yes");
+			// L'attribut "false" fait qu'on dessine un neurone en BLEU
 				neuronPanel = new DrawPanel(false);
-//				neuronPanel.setBackground(new Color(50, 210, 250, 200));
 
-				
-				// GETTING THE PANEL COORDS
+				// On garde les coordonnées du RegularNeuron
 				int x = neuronPanel.getX();
 				int y = neuronPanel.getY();
-				
 				layerPanel.add(neuronPanel);
 				
 				int[] coords = new int[2];
@@ -312,23 +259,17 @@ public class ApplicationWindow {
 				coords[1] = y;
 				int[] stored_coords = coords;
 				list.add(stored_coords.clone());
-								
-
 			}
-			
-			// rajoute neurone biais si necessaire
+				
+			// Rajoute les BiasNeuron
 			if (l.hasBiasNeuron) {
-				System.out.println("bias_neuron");
+			// L'attribut "true" fait qu'on dessine un neurone en ROSE
 				neuronPanel = new DrawPanel(true);
-//				neuronPanel.setBackground(new Color(50, 210, 250, 200));
-				
 				layerPanel.add(neuronPanel);
-//				neuronPanels.get(index).add(neuronPanel);
 				
-				// GETTING THE PANEL COORDS
+				// On garde les coordonnées du BiasNeuron
 				int x = neuronPanel.getX();
 				int y = neuronPanel.getY();
-				
 				layerPanel.add(neuronPanel);
 				
 				int[] coords = new int[2];
@@ -336,52 +277,21 @@ public class ApplicationWindow {
 				coords[1] = y;
 				int[] stored_coords = coords;
 				list.add(stored_coords.clone());
-				
-//				Point convertedPoint = SwingUtilities.convertPoint(pnlAffichage, 0, 0, neuronPanel);
-//				System.out.println(convertedPoint);
 			}
-			
-			// On garde les coordonnées des neurones pour peindre les flèches
-//			neuronCoords.add(list);
-
 			layerPanel.setBounds( ( (pnlAffichage.getWidth()/myNet.layers.size()) * index) , 0, panel_width, panel_height/*(100 * l.layerSize)*/ );
-//			layerPanel.setBounds(0, 0, 200, 200);
-//			layerPanel.setBackground(new Color(50, 210, 250, 200));
 			
-//			pnlAffichage.add(layerPanel);
 			pnlAffichage.add(layerPanel, JLayeredPane.DEFAULT_LAYER);
-//			pnlAffichage.add(layerPanel, new Integer(JLayeredPane.DEFAULT_LAYER));
-			
-//			networkPanel.add(layerPanel);
-//			networkPanel.updateUI();
-//			pnlAffichage.setLayer(networkPanel, 10);
-//			pnlAffichage.add(networkPanel, new Integer(10));
-//			pnlAffichage.repaint();
 			layerPanelList.add(layerPanel);
 			layerPanel.updateUI();
 			pnlAffichage.updateUI();
 			
-			
-//			Point convertedPoint = SwingUtilities.convertPoint(neuronPanel, new Point(0,0), pnlAffichage);
-//			System.out.println(convertedPoint);
-			
 			index += 1;
 		}
-
-	    
-////	    pnlAffichage.setLayer(testPanel, 1);
-//	    pnlAffichage.add(testPanel, new Integer(JLayeredPane.DEFAULT_LAYER + 10));
-		
 	}
 	
+
 	
-	
-	
-	
-	
-	
-	
-	/**
+	/*
 	 * Lancement de l'application
 	 */
 	public static void main(String[] args) {
@@ -396,14 +306,18 @@ public class ApplicationWindow {
 			}
 		});
 	}
+	
+	
 
-	/**
+	/*
 	 * Permet de créer la fenêtre
 	 * 
 	 */
 	public ApplicationWindow() {
 		initialize();
 	}
+
+
 
 	/**
 	 * Création et initialisation des différent composants de la fenêtre
@@ -417,7 +331,7 @@ public class ApplicationWindow {
 		neuronCoords = new ArrayList<ArrayList<Point>>();
 		neuronPanelDimensions = new ArrayList<ArrayList<int[]>>();
 		
-		//===fenêtre principal===
+		//===fenêtre principale===
 		mainFrame = new JFrame();
 		mainFrame.setTitle("Projet RNA");
 		mainFrame.setBounds(100, 100, 800, 610);
@@ -469,69 +383,10 @@ public class ApplicationWindow {
 		Border compound = BorderFactory.createTitledBorder("networkPanel");
 		networkPanel.setBorder(compound);
 		networkPanel.setVisible(true);
-
 		
-//		// Permet de re-sizer les LayerPanel quand on change la taille de la fenetre //
-//		pnlAffichage.addComponentListener(new ComponentAdapter() {
-//	        @Override
-//	        public void componentResized(ComponentEvent e) {
-//	          	System.out.println("Resized to " + e.getComponent().getSize());
-//	        	if (layerPanelList.size() != 0) {
-//		          	for (JPanel panel : layerPanelList) {
-//		        		panel.repaint();
-//		        	}
-//	        	}
-//	        }
-//		});
-		
-				
 		
 		mainFrame.getContentPane().add(pnlAffichage, "cell 0 0 1 7,grow");
 		
-		
-////////////////////// TEST DES GLASS-PANE ............. ///////////////////////////////////////////////////////////////////////7
-		
-//		JPanel glassPane = (JPanel) mainFrame.getGlassPane();
-//		glassPane.setPreferredSize(new Dimension(300, 500));
-////		glassPane.size
-//		System.out.println(glassPane.getSize());
-//		
-//
-//		glassPane.setVisible(true);
-//		glassPane.setLayout(new GridLayout(0, 1));
-////	    JButton glassButton = new JButton("Hide");
-////	    glassPane.add(glassButton);
-	    
-//	    ExtPanel testPanel = new ExtPanel();
-//	    testPanel.setLayout(new GridLayout(0, 1));
-//	    testPanel.setPreferredSize(new Dimension(300,300));
-//	    testPanel.setBackground(Color.PINK);
-////	    testPanel.setMinimumSize(new Dimension(300, 300));
-//	    
-//	    testPanel.setVisible(true);
-//
-////	    glassPane.add(testPanel);
-//	    mainFrame.setGlassPane(testPanel);
-//	    mainFrame.repaint();
-////	    mainFrame.pack();
-////	    mainFrame.glass
-	    
-//	    GridBagConstraints c = new GridBagConstraints();
-//	    c.fill = GridBagConstraints.HORIZONTAL;
-////	    c.gridx = 1;
-////	    c.gridy = 1;
-//	    c.gridwidth = 1;
-//	    c.gridheight = 1;
-//	    c.fill = GridBagConstraints.BOTH;
-
-		
-
-
-		
-		
-//		mainFrame.getContentPane().add(pnlAffichage);
-		
-//		pnlAffichage.setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
 		
 		
 		
@@ -621,10 +476,12 @@ public class ApplicationWindow {
 					coucheRNA.addLayer(new_layer);
 					txtConsoleOutput.append("\n Layer : " + lstTypeLayer.getSelectedValue() + " / Activation : " + lstFonctActiv.getSelectedValue() + " / Nombre de neurone : " + txtNbrNeurone.getText() + " / Biais :" +  radNBiaisYes.isSelected() );
 					
-					// Dessine les layerPanel
-					drawLayerPanels();
+					///////// Dessine les layerPanel ////////////////
 					clearArrows();
-					drawArrows();	
+					drawLayerPanels();
+					drawArrows();
+					///////// Dessine les layerPanel ////////////////
+					
 				} 
 				else {
 				    System.out.println("User canceled / closed the dialog, result = " + result);
@@ -815,6 +672,7 @@ public class ApplicationWindow {
 				myNet.addLayer("hidden", "sigmoid", 4, true);
 				myNet.addLayer("output", "sigmoid", 1, false);
 				
+				clearArrows();
 				drawLayerPanels();
 				drawArrows();
 				
@@ -822,7 +680,6 @@ public class ApplicationWindow {
 				x_train = donneesInput.get(0);
 				y_train = donneesInput.get(1);
 				
-//				myNet.train(x_train, y_train, 5000, 0.5);
 				
 				//TEMP
 				step = 1000;

@@ -1037,6 +1037,7 @@ public class Net {
 		myNet.addLayer("input", "sigmoid", 2, true);
 		myNet.addLayer("hidden", "sigmoid", 4, true);
 		myNet.addLayer("output", "sigmoid", 1, false);	
+		
 
 		// Entrainement, 8000 epochs, learning_rate 0.5
 		myNet.train(x_train, y_train, 8000, 0.5);
