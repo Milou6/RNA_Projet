@@ -15,6 +15,11 @@ import java.awt.TextArea;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.Line2D;
+import java.awt.event.MouseAdapter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +57,7 @@ import javax.swing.ButtonGroup;
 public class ApplicationWindow {
 
 	private static final Graphics Graphics = null;
+	private static final MouseListener MouseListener = null;
 	private JFrame mainFrame;				// Fenetre principal
 	private static TextArea txtConsoleOutput;		// Zone de Texte permettant d'afficher les sorties de la console
 	private Net myNet;						// Objet Net représentant le résau de neurone artificiel créer
@@ -96,24 +102,31 @@ public class ApplicationWindow {
 	 */
 	public void printNeuronValues() {
 		
-		// Boucle sur les layerPanel
-		for (int i=0; i<layerPanelList.size(); i++) {
-			JPanel current_layer_panel = layerPanelList.get(i);
-//			Component current_layer_panel = pnlAffichage.getComponent(i);
-//			current_layer_panel.
-			for (int j=0; j<current_layer_panel.getComponentCount(); j++) {
-//				System.out.println(myNet.netDataBase.activations.get(i).getEntry(j, 0));
-				JPanel current_neuron_panel = (JPanel) current_layer_panel.getComponent(j);
-				
-				JTextField neuronValue = new JTextField(String.format("%.4f", myNet.netDataBase.activations.get(i).getEntry(j, 0)));
-				neuronValue.setEditable(false);
-				current_neuron_panel.removeAll();
-				current_neuron_panel.add(neuronValue);				
-//				current_neuron_panel.add(new line());
-//				current_neuron_panel.repaint();
-//				pnlAffichage.updateUI();
+		// Ce "if" évite de faire des divisions par zéro....
+		if (myNet.netDataBase.activations.size() != 0) {
+		
+		
+			// Boucle sur les layerPanel
+			for (int i=0; i<layerPanelList.size(); i++) {
+				JPanel current_layer_panel = layerPanelList.get(i);
+	//			Component current_layer_panel = pnlAffichage.getComponent(i);
+	//			current_layer_panel.
+				for (int j=0; j<current_layer_panel.getComponentCount(); j++) {
+	//				System.out.println(myNet.netDataBase.activations.get(i).getEntry(j, 0));
+					JPanel current_neuron_panel = (JPanel) current_layer_panel.getComponent(j);
+					
+					JTextField neuronValue = new JTextField(String.format("%.4f", myNet.netDataBase.activations.get(i).getEntry(j, 0)));
+					neuronValue.setEditable(false);
+					current_neuron_panel.removeAll();
+					current_neuron_panel.add(neuronValue);				
+	//				current_neuron_panel.add(new line());
+	//				current_neuron_panel.repaint();
+	//				pnlAffichage.updateUI();
+				}
 			}
 		}
+		
+
 	}
 	
 	
@@ -123,20 +136,24 @@ public class ApplicationWindow {
 	public void clearArrows() {
 		neuronCoords.clear();
 		neuronPanelDimensions.clear();
+		System.out.println("clearArrows() INVOKED");
+		
+//		pnlAffichage.remove(arrowPanel);
+//		pnlAffichage.remove
 
-		ArrayList<ArrayList<Point>> emptyList = new ArrayList<ArrayList<Point>>();
-		boolean[] temp_boolean = {true,true,true};
-	
-		// On re-crée un nouveau ExtPanel, en lui donnant des listes vides pour qu'il ne dessine aucune flèche
-	   	ExtPanel returnPanel = new ExtPanel(emptyList, neuronPanelDimensions, pnlAffichage, temp_boolean);
-  	
-  		// On remplace l'ExtPanel du PnlAffichage par ce nouveau ExtPanel vide.
-    	arrowPanel = returnPanel;
-	    arrowPanel.setLayout(new GridLayout(0, 1));
-	    arrowPanel.setPreferredSize(pnlAffichage.getPreferredSize());
-	    arrowPanel.setBounds(0, 0, pnlAffichage.getWidth(), pnlAffichage.getHeight());
-	    arrowPanel.setVisible(true);
-	    pnlAffichage.add(arrowPanel, JLayeredPane.POPUP_LAYER);
+//		ArrayList<ArrayList<Point>> emptyList = new ArrayList<ArrayList<Point>>();
+//		boolean[] temp_boolean = {true,true,true};
+//	
+//		// On re-crée un nouveau ExtPanel, en lui donnant des listes vides pour qu'il ne dessine aucune flèche
+//	   	ExtPanel returnPanel = new ExtPanel(emptyList, neuronPanelDimensions, pnlAffichage, temp_boolean);
+//  	
+//  		// On remplace l'ExtPanel du PnlAffichage par ce nouveau ExtPanel vide.
+//    	arrowPanel = returnPanel;
+//	    arrowPanel.setLayout(new GridLayout(0, 1));
+//	    arrowPanel.setPreferredSize(pnlAffichage.getPreferredSize());
+//	    arrowPanel.setBounds(0, 0, pnlAffichage.getWidth(), pnlAffichage.getHeight());
+//	    arrowPanel.setVisible(true);
+//	    pnlAffichage.add(arrowPanel, JLayeredPane.POPUP_LAYER);
 	    
 	    pnlAffichage.updateUI();
 	}
@@ -145,6 +162,9 @@ public class ApplicationWindow {
     /* Dessine les flèches connectant les neurones du réseau.
 	 */
     public void drawArrows() {
+    	neuronCoords.clear();
+		neuronPanelDimensions.clear();
+		
 		// Boucle sur les layerPanel
 		for (int i=0; i<layerPanelList.size(); i++) {
 			JPanel current_layer_panel = layerPanelList.get(i);
@@ -197,7 +217,17 @@ public class ApplicationWindow {
 			}
 			else {layerHasBiasNeuron[myNet.layers.indexOf(l)] = false;}
 		}
-
+		System.out.println(Arrays.toString(layerHasBiasNeuron));
+		
+		try {
+			pnlAffichage.remove(arrowPanel);
+			System.out.println("ArrowPanel removed");
+		}
+		catch(Exception e) {
+		  System.out.println("no ArrowPanel to remove");
+		}
+		System.out.println("got after");
+		
 		// On appelle le constructeur de ExtPanel, en lui donnant les infos sur les coordonnées/dimensions des panels
     	ExtPanel returnPanel = new ExtPanel(neuronCoords, neuronPanelDimensions, pnlAffichage, layerHasBiasNeuron);
    	
@@ -208,7 +238,112 @@ public class ApplicationWindow {
 	    arrowPanel.setVisible(true);
 	    pnlAffichage.add(arrowPanel, JLayeredPane.POPUP_LAYER);
 	    
-	    pnlAffichage.updateUI();    	
+	    ////////////////////// DEBUG ////////////////////////
+//	    System.out.println(pnlAffichage.getComponentCount());
+	    
+	    
+	       // We need to remove old mouselisteners
+//		   try {
+//		   java.awt.event.MouseMotionListener[] mouseListenersList = pnlAffichage.getMouseMotionListeners();
+//			   for (MouseMotionListener ml : mouseListenersList) {
+//			   		pnlAffichage.removeMouseMotionListener(ml);	
+//			   }
+//		   }
+//		   catch (Exception e) {
+//		   }
+//
+//		   
+//		MouseMotionListener ml = new MouseAdapter() {
+//			public void mouseMoved(MouseEvent e) {
+////		    	int x = e.getXOnScreen();
+////				int y = e.getYOnScreen();
+//				int x = e.getX();
+//				int y = e.getY();
+//		    	
+//			    for (Line2D l : linesList) {
+////			    	if (l.intersects(x-20, y-20, x+20, y+20)) {
+//			    	if (l.ptSegDist(e.getX(), e.getY()) <= 10) {
+//				    	System.out.println("SECTTTTTTTTTTTTTTT");
+////				    	Point2D start = l.getP1();
+////				    	Point2D end = l.getP2();
+////				    	int x0 = (int) l.getX1();
+//				    	g2d.setColor(Color.BLUE);
+//				    	g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+//				    	
+//				    	Double myLine = new Line2D.Double( l.getX1(), l.getY1(), l.getX2(), l.getY2());
+////				    	g2d.set
+////				    	g2d.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
+//				    	g2d.draw(myLine);
+////				    	pnlAffichage.updateUI();
+//				    	pnlAffichage.repaint();
+//			    	}
+//			    }
+//		    }
+////
+////			
+////	    public void mouseClicked(MouseEvent e) {
+////		    	int x = e.getXOnScreen();
+////		    	int y = e.getYOnScreen();
+////		    	
+////			    for (Line2D l : linesList) {
+//////			    	if (l.intersects(x-20, y-20, x+20, y+20)) {
+////			    	if (l.ptSegDist(e.getX(), e.getY()) <= 10) {
+////				    	System.out.println("SECTTTTTTTTTTTTTTT");
+//////				    	Point2D start = l.getP1();
+//////				    	Point2D end = l.getP2();
+//////				    	int x0 = (int) l.getX1();
+////				    	g2d.setColor(Color.BLUE);
+////				    	g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+//////				    	g2d.set
+////				    	g2d.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
+////				    	pnlAffichage.updateUI();
+////			    	}
+////			    }
+////		    	
+////		    	System.out.println("x " + x + " y " + y);  
+////			}
+////			
+////			public void mousePressed(MouseEvent e) {
+////				System.out.println("Mouse pressed; # of clicks: "
+////			                    + e.getClickCount());
+////			    }
+////
+////			    public void mouseReleased(MouseEvent e) {
+////			    	System.out.println("Mouse released; # of clicks: "
+////			                    + e.getClickCount());
+////			    }
+////
+////			    public void mouseEntered(MouseEvent e) {
+////			    	System.out.println("Mouse entered");
+////			    	
+////
+////				    for (Line2D l : linesList) {
+//////					    	createStrokedShape(l);
+////				    	
+//////					    	if (l.intersects(x-20, y-20, x+20, y+20)) {
+////				    	if (l.ptSegDist(e.getX(), e.getY()) <= 10) {
+////					    	System.out.println("SECTTTTTTTTTTTTTTT");	
+////				    	}
+////				    }
+////
+////
+////			    }
+////
+////			    public void mouseExited(MouseEvent e) {
+////			    	System.out.println("Mouse exited");
+////			    }
+////  
+//	    };
+//	    
+////		this.addMouseListener(ml);
+//		pnlAffichage.addMouseMotionListener(ml);
+	    
+	    
+	    
+	    
+	    pnlAffichage.updateUI();
+	    
+
     }
     
 
@@ -216,7 +351,8 @@ public class ApplicationWindow {
 	/* Printe les couches du RNA et les neurones dans chaque couche.
 	 * Chaque neurone est un sous-panel dans un layerPanel.
 	 */
-	public void drawLayerPanels() {		
+	public void drawLayerPanels() {	
+		System.out.println("drawLayerPanels() INVOKED");	
 		pnlAffichage.removeAll();
 		layerPanelList.clear();
 		int index = 0;
@@ -287,13 +423,14 @@ public class ApplicationWindow {
 				
 				pnlAffichage.add(layerPanel, JLayeredPane.DEFAULT_LAYER);
 				layerPanelList.add(layerPanel);
-				layerPanel.updateUI();
-				pnlAffichage.updateUI();
+				
+				// DO WE NEED THIS ????????
+//				layerPanel.updateUI();
+//				pnlAffichage.updateUI();
 				
 				index += 1;
 			}
 		}
-
 	}
 	
 
@@ -366,7 +503,7 @@ public class ApplicationWindow {
 //              mainFrame.removeAll();
 //				mainFrame.remove(mainFrame.getComponent(0).get);
 //				arrowPanel.removeAll();
-				clearArrows();
+//				clearArrows();
                 drawLayerPanels();
                 drawArrows();
                 printNeuronValues();
@@ -484,7 +621,7 @@ public class ApplicationWindow {
 					txtConsoleOutput.append("\n Layer : " + lstTypeLayer.getSelectedValue() + " / Activation : " + lstFonctActiv.getSelectedValue() + " / Nombre de neurone : " + txtNbrNeurone.getText() + " / Biais :" +  radNBiaisYes.isSelected() );
 					
 					///////// Dessine les layerPanel ////////////////
-					clearArrows();
+//					clearArrows();
 					drawLayerPanels();
 					drawArrows();
 					///////// Dessine les layerPanel ////////////////
@@ -718,7 +855,7 @@ public class ApplicationWindow {
 					
 //				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
 //				// Changer le "false" dans la ligne sous ce bloc -->  btnStepTrain.setEnabled(false);
-
+//
 //				btnNext.setEnabled(true);
 //				myNet.addLayer("input", "sigmoid", 2, true);
 //				myNet.addLayer("hidden", "sigmoid", 4, true);
@@ -739,7 +876,7 @@ public class ApplicationWindow {
 //				clearArrows();
 //				drawLayerPanels();
 //				drawArrows();
-//				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
+				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
 					
 					
 					
