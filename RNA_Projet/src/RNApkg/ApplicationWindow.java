@@ -75,7 +75,7 @@ public class ApplicationWindow {
 	private JPanel pnlRNA;
 	private JPanel pnlGraph;
 	private JLabel lblTitre;
-	private LIMCouche coucheRNA;
+	//private LIMCouche coucheRNA;
 	private ChartPanel ErrorChartPanel;
 
 	ArrayList<DrawPanel> drawPanelList;
@@ -94,7 +94,7 @@ public class ApplicationWindow {
             g2.setColor(Color.GREEN);
             g2.setStroke(new BasicStroke(20));
             g2.draw(s);
-//            System.out.println("doing something...");
+//           txtConsoleOutput.append("\n doing something...");
         }
     }
 	
@@ -144,7 +144,7 @@ public class ApplicationWindow {
 		mainFrame.getContentPane().setLayout(new MigLayout("", "[grow][10px:n][fill]", "[50px:50px][50px:50px][50px:50px][50px:50px][50px:50px][50px:50px][10px:n,grow][grow]"));
 		
 		//===Liste des couches===
-		coucheRNA = new LIMCouche();
+		//coucheRNA = new LIMCouche();
 		
 		//===Panneau d'affichage===
 		pnlAffichage = new JPanel();
@@ -156,7 +156,7 @@ public class ApplicationWindow {
 //		pnlAffichage.addComponentListener(new ComponentAdapter() {
 //	        @Override
 //	        public void componentResized(ComponentEvent e) {
-//	          	System.out.println("Resized to " + e.getComponent().getSize());
+//	          	txtConsoleOutput.append("\n Resized to " + e.getComponent().getSize());
 //	        	if (layerPanelList.size() != 0) {
 //		          	for (JPanel panel : layerPanelList) {
 //		        		panel.repaint();
@@ -291,7 +291,7 @@ public class ApplicationWindow {
 				final JComponent[] inputs = new JComponent[] {
 				        new JLabel("Couche"),
 				        lstTypeLayer,
-				        new JLabel("Foction d'activation"),
+				        new JLabel("Fonction d'activation"),
 				        lstFonctActiv,
 				        new JLabel("Nbr de neurone"),
 				        txtNbrNeurone,
@@ -310,7 +310,7 @@ public class ApplicationWindow {
 					}
 					
 					Layer new_layer = myNet.addLayer(lstTypeLayer.getSelectedValue(), lstFonctActiv.getSelectedValue(), nbrNeurone, radNBiaisYes.isSelected());
-					coucheRNA.addLayer(new_layer);
+					//myNet.lcCouches.addLayer(new_layer);
 					txtConsoleOutput.append("\n Layer : " + lstTypeLayer.getSelectedValue() + " / Activation : " + lstFonctActiv.getSelectedValue() + " / Nombre de neurone : " + txtNbrNeurone.getText() + " / Biais :" +  radNBiaisYes.isSelected() );
 					
 					// Dessine les layerPanel
@@ -339,7 +339,7 @@ public class ApplicationWindow {
 //					System.out.println(Arrays.deepToString(pnlAffichage.getComponents()));
 				
 //				} else {
-				    System.out.println("User canceled / closed the dialog, result = " + result);
+				   txtConsoleOutput.append("\n Action interrompue par l'utilisateur");
 				}
 											
 				btnPopLayer.setEnabled(true);
@@ -356,28 +356,37 @@ public class ApplicationWindow {
 		btnPopLayer = new Button("popLayer");
 		btnPopLayer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//===Liste des Layers===
-				JList<Layer> lstLayers = new JList<Layer>(coucheRNA);
-				lstLayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-				lstLayers.setSelectedIndex(0);
-				lstLayers.addListSelectionListener(new ListSelectionListener() {
-					@Override
-					public void valueChanged(ListSelectionEvent e) {
-						// TODO Auto-generated method stub				
+				if(myNet.lcCouches.getSize() > 0)
+				{
+					//===Liste des Layers===
+					JList<Layer> lstLayers = new JList<Layer>(myNet.lcCouches);
+					lstLayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+					lstLayers.setSelectedIndex(0);
+					lstLayers.addListSelectionListener(new ListSelectionListener() {
+						@Override
+						public void valueChanged(ListSelectionEvent e) {
+							// TODO Auto-generated method stub				
+						}
+					});
+					
+					//JTextField firstName = new JTextField();
+					final JComponent[] inputs = new JComponent[] {
+					        new JLabel("Couche"),
+					        lstLayers
+					};
+					int result = JOptionPane.showConfirmDialog(null, inputs, "Pop Layer", JOptionPane.PLAIN_MESSAGE);
+					if (result == JOptionPane.OK_OPTION) {
+						//System.out.println(result);
+						txtConsoleOutput.append("\n couche à supprimer : " + lstLayers.getSelectedValue().toString());
+						myNet.lcCouches.removeLayer(lstLayers.getSelectedIndex());
+						drawLayerPanels();
+					} else {
+					   txtConsoleOutput.append("\n Action interrompue par l'utilisateur");
 					}
-				});
-				
-				//JTextField firstName = new JTextField();
-				final JComponent[] inputs = new JComponent[] {
-				        new JLabel("Couche"),
-				        lstLayers
-				};
-				int result = JOptionPane.showConfirmDialog(null, inputs, "Pop Layer", JOptionPane.PLAIN_MESSAGE);
-				if (result == JOptionPane.OK_OPTION) {
-					System.out.println(result);
-					System.out.println("couche Ã Â supprimer : " + lstLayers.getSelectedValue().toString());
-				} else {
-				    System.out.println("User canceled / closed the dialog, result = " + result);
+				}
+				else
+				{
+					txtConsoleOutput.append("\n Aucune couche à supprimé !");
 				}
 			}
 		});
@@ -444,7 +453,7 @@ public class ApplicationWindow {
 						btnTrain.setEnabled(true);
 					}
 					else {
-					    System.out.println("User canceled / closed the dialog, result = " + result);
+					   txtConsoleOutput.append("\n Action interrompue par l'utilisateur");
 					}
 				 }
 			}
@@ -512,7 +521,7 @@ public class ApplicationWindow {
 					btnPrint.setEnabled(true);
 					
 				} else {
-				    System.out.println("User canceled / closed the dialog, result = " + result);
+				   txtConsoleOutput.append("\n Action interrompue par l'utilisateur");
 				}
 				//txtConsoleOutput.append(txtConsoleOutput.toString());
 				//txtConsoleOutput.append("\n\n" + System.in.toString());
@@ -652,7 +661,7 @@ public class ApplicationWindow {
 						btnTrain.setEnabled(true);
 					}
 					else {
-					    System.out.println("User canceled / closed the dialog, result = " + result);
+					   txtConsoleOutput.append("\n Action interrompue par l'utilisateur");
 					}
 				 }
 			}
@@ -706,7 +715,7 @@ public class ApplicationWindow {
 		pnlRNA.removeAll();
 		layerPanelList.clear();
 		
-		for (Layer l : myNet.layers) {
+		for (int i = 0; i < myNet.lcCouches.getSize();i++) {
 			// Implémente les sous-panel qui représentent chaque layer
 			JPanel layerPanel = new JPanel();
 			layerPanel.setLayout(new BoxLayout(layerPanel, BoxLayout.Y_AXIS));
@@ -718,12 +727,12 @@ public class ApplicationWindow {
 			compound = BorderFactory.createTitledBorder("Layer" + panelNumber);
 			layerPanel.setBorder(compound);
 			
-			int layer_regular_neuron_count = l.layerSize;
-			if (l.hasBiasNeuron)  {layer_regular_neuron_count -= 1;}
+			int layer_regular_neuron_count = myNet.lcCouches.getElementAt(i).layerSize;
+			if (myNet.lcCouches.getElementAt(i).hasBiasNeuron)  {layer_regular_neuron_count -= 1;}
 			
 			// crée les panels pour chaque neurone
-			for (int i=0; i<layer_regular_neuron_count; i++) {
-//				System.out.println("yes");
+			for (int j=0; j<layer_regular_neuron_count; j++) {
+//				txtConsoleOutput.append("\n yes");
 				DrawPanel neuronPanel = new DrawPanel(false);
 				
 				layerPanel.add(neuronPanel);
@@ -731,7 +740,7 @@ public class ApplicationWindow {
 			}
 			
 			// rajoute neurone biais si necessaire
-			if (l.hasBiasNeuron) {
+			if (myNet.lcCouches.getElementAt(i).hasBiasNeuron) {
 				DrawPanel neuronPanel = new DrawPanel(true);
 				
 				layerPanel.add(neuronPanel);
@@ -753,7 +762,7 @@ public class ApplicationWindow {
 			
 			for (int j=0; j<current_layer_panel.getComponentCount(); j++) {
 				System.out.println(myNet.netDataBase.activations.get(i).getEntry(j, 0));
-				System.out.println("test");
+				txtConsoleOutput.append("\n test");
 				JPanel current_neuron_panel = (JPanel) current_layer_panel.getComponent(j);
 				
 				JTextField neuronValue = new JTextField(String.format("%.4f", myNet.netDataBase.activations.get(i).getEntry(j, 0)));

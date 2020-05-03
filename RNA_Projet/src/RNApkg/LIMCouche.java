@@ -22,4 +22,18 @@ public class LIMCouche extends AbstractListModel<Layer> {
 		couches.add(couche);
 		fireContentsChanged(this, 0, getSize());
 	}
+	
+	public void removeLayer(int index) {
+		couches.remove(index);
+		fireContentsChanged(this, 0, getSize());
+	}
+
+	public int indexOf(Layer Layer) {
+		
+		return couches.indexOf(Layer);
+	}
+	
+	public String getInfoCouches() {
+		return "Bidou";
+	}
 }

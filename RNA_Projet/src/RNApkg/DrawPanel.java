@@ -8,6 +8,7 @@ import java.awt.RenderingHints;
 
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class DrawPanel extends JPanel{
 //	private int nbrNeurones;
 	private boolean isBiasNeuron;

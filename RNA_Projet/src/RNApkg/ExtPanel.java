@@ -3,8 +3,8 @@ package RNApkg;
 import java.awt.Graphics;
 
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class ExtPanel extends JComponent{
 	 public ExtPanel() {
 		 super(); 
