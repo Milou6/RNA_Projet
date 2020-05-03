@@ -140,7 +140,7 @@ class HiddenLayer extends Layer {
 	@Override
 	public void forwardPropagate(double[][] x_test) {	
 		DataBase dataBase = parent.netDataBase;
-		int index = parent.lcCouches.indexOf(this);
+		int index = parent.layers.indexOf(this);
 		
 		RealMatrix current_layer_activation = dataBase.activations.get(index);
 		RealMatrix previous_layer_activation = dataBase.activations.get(index-1).copy();
@@ -185,7 +185,7 @@ class OutputLayer extends Layer {
 	@Override
 	public void forwardPropagate(double[][] x_test) {
 		DataBase dataBase = parent.netDataBase;
-		int index = parent.lcCouches.indexOf(this);
+		int index = parent.layers.indexOf(this);
 		
 		RealMatrix current_layer_activation = dataBase.activations.get(index);
 		RealMatrix previous_layer_activation = dataBase.activations.get(index-1).copy();
@@ -216,5 +216,5 @@ class OutputLayer extends Layer {
 		//Mets � jour le RNA avec la nouvelle matrice d'activation du DataBase.
 		this.parent.netDataBase.sendActivationsToNeurons();
 	}
-
 }
+

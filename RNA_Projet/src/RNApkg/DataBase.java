@@ -111,8 +111,8 @@ public class DataBase {
 	* correspondants du RNA.
 	*/
 	public void sendWeightsToNeurons() {
-		for (int i=0; i<parent.lcCouches.getSize()-1; i++) {
-			Layer current_layer = parent.lcCouches.getElementAt(i);
+		for (int i=0; i<parent.layers.size()-1; i++) {
+			Layer current_layer = parent.layers.get(i);
 			for (int j=0; j<current_layer.layerSize; j++) {
 				Neuron current_neuron = current_layer.neurons.get(j);
 				current_neuron.forwardWeights = weights.get(i).getColumnMatrix(j);
@@ -125,8 +125,8 @@ public class DataBase {
 	* correspondants du RNA.
 	*/
 	public void sendActivationsToNeurons() {
-		for (int i=0; i<parent.lcCouches.getSize(); i++) {
-			Layer current_layer = parent.lcCouches.getElementAt(i);
+		for (int i=0; i<parent.layers.size(); i++) {
+			Layer current_layer = parent.layers.get(i);
 			for (int j=0; j<current_layer.layerSize; j++) {
 				Neuron current_neuron = current_layer.neurons.get(j);
 				current_neuron.activation = this.activations.get(i).getEntry(j, 0);
@@ -156,9 +156,5 @@ public class DataBase {
 		System.out.println(m);
 	}
 }
-
-
-
-
 
 
