@@ -32,8 +32,4 @@ public class LIMCouche extends AbstractListModel<Layer> {
 		
 		return couches.indexOf(Layer);
 	}
-	
-	public String getInfoCouches() {
-		return "Bidou";
-	}
 }
