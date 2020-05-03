@@ -41,8 +41,7 @@ import org.jfree.data.xy.*;
  * 									Utilisé pour dessiner le graphe d'erreur à la fin de l'entrainement.
  */
 public class Net {
-	//ArrayList<Layer> layers;
-	LIMCouche lcCouches;
+	ArrayList<Layer> layers;
 	DataBase netDataBase;
 	ArrayList<ArrayList<RealMatrix>> batchActivations;
 	ArrayList<ArrayList<RealMatrix>> batchErrors;
@@ -50,8 +49,7 @@ public class Net {
 	
 	//Constructeur
 	public Net() {
-		//this.layers = new ArrayList<Layer>();
-		this.lcCouches = new LIMCouche();
+		this.layers = new ArrayList<Layer>();
 		this.netDataBase = new DataBase(this);
 		this.batchActivations = new ArrayList<ArrayList<RealMatrix>>();
 		this.batchErrors = new ArrayList<ArrayList<RealMatrix>>();
@@ -61,16 +59,15 @@ public class Net {
 	public String print() {
 		String impression;
 		
-		impression = "\n NETWORK PRINT ( " + lcCouches.getSize() + " layers )";
+		impression = "\n NETWORK PRINT ( " + layers.size() + " layers )";
 		
-		for(int i = 0; i < lcCouches.getSize();i++)
-		{
-			impression += "\n Layer " + lcCouches.indexOf(lcCouches.getElementAt(i)) + " :";
-			for (Neuron n : lcCouches.getElementAt(i).neurons) {
+		for (Layer i : layers) {
+			impression += "\n Layer " + layers.indexOf(i) + " :";
+			for (Neuron n : i.neurons) {
 				impression+=n;
 			}
 		}
-			
+		
 		return impression;
 	}
 	
@@ -166,7 +163,7 @@ public class Net {
 		int m1_index = netDataBase.weightedInputs.indexOf(m1);
 		RealMatrix corresponding_activation_matrix = netDataBase.activations.get(m1_index);
 		//Si la layer en question a un BiasNeuron, on ne veut pas son activation pour le calcul
-		if (lcCouches.getElementAt(m1_index).hasBiasNeuron == true) {
+		if (layers.get(m1_index).hasBiasNeuron == true) {
 			//Ligne très longue, mais qui simplement supprime la dernière ligne de la matrice
 			corresponding_activation_matrix = corresponding_activation_matrix.getSubMatrix(0, corresponding_activation_matrix.getRowDimension()-2, 0, corresponding_activation_matrix.getColumnDimension()-1);
 		}
@@ -192,7 +189,7 @@ public class Net {
 		
 		RealMatrix corresponding_activation_matrix = netDataBase.activations.get(m1_index);
 		//Si la layer en question a un BiasNeuron, on ne veut pas son activation pour le calcul
-		if (lcCouches.getElementAt(m1_index).hasBiasNeuron == true) {
+		if (layers.get(m1_index).hasBiasNeuron == true) {
 			//Ligne très longue, mais qui simplement supprime la dernière ligne de la matrice
 			corresponding_activation_matrix = corresponding_activation_matrix.getSubMatrix(0, corresponding_activation_matrix.getRowDimension()-2, 0, corresponding_activation_matrix.getColumnDimension()-1);
 		}
@@ -220,7 +217,7 @@ public class Net {
 		
 		RealMatrix corresponding_activation_matrix = netDataBase.activations.get(m1_index);
 		//Si la layer en question a un BiasNeuron, on ne veut pas son activation pour le calcul
-		if (lcCouches.getElementAt(m1_index).hasBiasNeuron == true) {
+		if (layers.get(m1_index).hasBiasNeuron == true) {
 			//Ligne très longue, mais qui simplement supprime la dernière ligne de la matrice
 			corresponding_activation_matrix = corresponding_activation_matrix.getSubMatrix(0, corresponding_activation_matrix.getRowDimension()-2, 0, corresponding_activation_matrix.getColumnDimension()-1);
 		}
@@ -270,7 +267,7 @@ public class Net {
 				break;
 		}
 		//On rajoute la layer vide à Net.layers
-		lcCouches.addLayer(new_layer);
+		layers.add(new_layer);
 		
 		//On rajoute les neurones à la layer
 		for (int i=0; i<layer_size; i++) {
@@ -302,20 +299,20 @@ public class Net {
 			predictions[i] = new double[y_test[0].length];
 			
 			//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
-			for (int j=0; j<lcCouches.getElementAt(0).layerSize; j++) {
-				Neuron current_neuron = lcCouches.getElementAt(0).neurons.get(j);
+			for (int j=0; j<layers.get(0).layerSize; j++) {
+				Neuron current_neuron = layers.get(0).neurons.get(j);
 				if (current_neuron instanceof RegularNeuron) {
 					current_neuron.activation = x_test[i][j];
 				}
 			}	
 //			System.out.println(this.print());
 			
-			for (int k = 0; k < lcCouches.getSize();k++) {
-				lcCouches.getElementAt(k).forwardPropagate(x_test);
+			for (Layer l : this.layers) {
+				l.forwardPropagate(x_test);
 			}
-//			System.out.println(layers.get(lcCouches.getSize()-1).neurons.size());
-			for (int l=0; l<lcCouches.getElementAt(lcCouches.getSize()-1).neurons.size(); l++) {
-				predictions[i][l] = lcCouches.getElementAt(lcCouches.getSize()-1).neurons.get(l).activation;
+//			System.out.println(layers.get(layers.size()-1).neurons.size());
+			for (int k=0; k<layers.get(layers.size()-1).neurons.size(); k++) {
+				predictions[i][k] = layers.get(layers.size()-1).neurons.get(k).activation;
 			}
 //			System.out.println("predictions : ");
 //			System.out.println(Arrays.deepToString(predictions));
@@ -331,8 +328,8 @@ public class Net {
 ////			for (int f=0; f<1; f++) {
 //				
 //				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
-//				for (int n=0; n<lcCouches.getElementAt(0).layerSize; n++) {
-//					Neuron current_neuron = lcCouches.getElementAt(0).neurons.get(n);
+//				for (int n=0; n<layers.get(0).layerSize; n++) {
+//					Neuron current_neuron = layers.get(0).neurons.get(n);
 //					if (current_neuron instanceof RegularNeuron) {
 //						current_neuron.activation = x_test[f][n];
 //					}
@@ -341,7 +338,7 @@ public class Net {
 //			for (Layer l : this.layers) {
 //				l.forwardPropagate(x_test);
 //			}
-//			predicted[f] = layers.get(lcCouches.getSize()-1).neurons.get(0).activation;
+//			predicted[f] = layers.get(layers.size()-1).neurons.get(0).activation;
 //		}
 //		return "\n PREDICTION: " + Arrays.toString(predicted);
 //		
@@ -369,14 +366,14 @@ public class Net {
 			throw new ArrayIndexOutOfBoundsException("Input data and Label lengths do not match.");
 		}
 		// Test: vérifie que l'InputLayer et x_test sont compatibles
-		int number_of_input_neurons = lcCouches.getElementAt(0).layerSize;
-		if (lcCouches.getElementAt(0).hasBiasNeuron == true) {number_of_input_neurons -= 1;}
+		int number_of_input_neurons = layers.get(0).layerSize;
+		if (layers.get(0).hasBiasNeuron == true) {number_of_input_neurons -= 1;}
 		if ( number_of_input_neurons != x_test[0].length) {
 			throw new ArrayIndexOutOfBoundsException(String.format("Input entries are of length %d and InputLayer has %d input neuron(s)", x_test[0].length, number_of_input_neurons));
 		}
 		// Test: vérifie que l'OututLayer et y_test sont compatibles
-		if (y_test[0].length != lcCouches.getElementAt(lcCouches.getSize()-1).layerSize) {
-			throw new ArrayIndexOutOfBoundsException(String.format("Output data is of length %d and OutputLayer has %d neuron(s)", y_test[0].length, lcCouches.getElementAt(lcCouches.getSize()-1).layerSize));
+		if (y_test[0].length != layers.get(layers.size()-1).layerSize) {
+			throw new ArrayIndexOutOfBoundsException(String.format("Output data is of length %d and OutputLayer has %d neuron(s)", y_test[0].length, layers.get(layers.size()-1).layerSize));
 		}
 		
 		
@@ -406,15 +403,15 @@ public class Net {
 //			for (int f=0; f<1; f++) {
 				
 				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
-				for (int n=0; n<lcCouches.getElementAt(0).layerSize; n++) {
-					Neuron current_neuron = lcCouches.getElementAt(0).neurons.get(n);
+				for (int n=0; n<layers.get(0).layerSize; n++) {
+					Neuron current_neuron = layers.get(0).neurons.get(n);
 					if (current_neuron instanceof RegularNeuron) {
 						current_neuron.activation = x_test[f][n];
 					}
 				}
 				//FORWARD-PROP ICI
-				for (int i = 0; i < lcCouches.getSize();i++) {
-					lcCouches.getElementAt(i).forwardPropagate(x_test);
+				for (Layer l : this.layers) {
+					l.forwardPropagate(x_test);
 				}
 				
 				computeOutputError(y_test[f]);
@@ -441,7 +438,7 @@ public class Net {
 			// networkError utilisé pour faire le graph de l'erreur d'entraînement
 			batch_error = 0.0;
 			for (int i=0; i<this.batchErrors.size(); i++) {
-				batch_error = batch_error + Math.abs(batchErrors.get(i).get(lcCouches.getSize()-1).getEntry(0, 0));
+				batch_error = batch_error + Math.abs(batchErrors.get(i).get(layers.size()-1).getEntry(0, 0));
 //				System.out.println(batch_error);
 			}
 			batch_error = batch_error / batchErrors.size();
@@ -479,15 +476,15 @@ public class Net {
 //			for (int f=0; f<1; f++) {
 				
 				//Pour chaque RegularNeuron de la Layer0, on initialise son activation (valeurs des données d'Input)
-				for (int n=0; n<lcCouches.getElementAt(0).layerSize; n++) {
-					Neuron current_neuron = lcCouches.getElementAt(0).neurons.get(n);
+				for (int n=0; n<layers.get(0).layerSize; n++) {
+					Neuron current_neuron = layers.get(0).neurons.get(n);
 					if (current_neuron instanceof RegularNeuron) {
 						current_neuron.activation = x_test[f][n];
 					}
 				}
 				//FORWARD-PROP ICI
-				for (int i = 0; i < lcCouches.getSize();i++) {
-					lcCouches.getElementAt(i).forwardPropagate(x_test);
+				for (Layer l : this.layers) {
+					l.forwardPropagate(x_test);
 				}
 				
 				computeOutputError(y_test[f]);
@@ -514,7 +511,7 @@ public class Net {
 			// networkError utilisé pour faire le graph de l'erreur d'entraînement
 			batch_error = 0.0;
 			for (int i=0; i<this.batchErrors.size(); i++) {
-				batch_error = batch_error + Math.abs(batchErrors.get(i).get(lcCouches.getSize()-1).getEntry(0, 0));
+				batch_error = batch_error + Math.abs(batchErrors.get(i).get(layers.size()-1).getEntry(0, 0));
 //				System.out.println(batch_error);
 			}
 			batch_error = batch_error / batchErrors.size();
@@ -540,11 +537,11 @@ public class Net {
 	 */
 	public void initializeWeights() {
 		//On modélise chaque "espace" entre 2 layers par une matrice de weights[][] qui connectent ces 2 layers
-		for (int i=0; i<lcCouches.getSize()-1; i++) {
-			int current_layer_size = lcCouches.getElementAt(i).layerSize;
-			int next_layer_size = lcCouches.getElementAt(i+1).layerSize;
+		for (int i=0; i<layers.size()-1; i++) {
+			int current_layer_size = layers.get(i).layerSize;
+			int next_layer_size = layers.get(i+1).layerSize;
 			//Les neurones d'une layer(l) ne doivent pas connecter au BiasNeuron de la layer(l+1)
-			if (lcCouches.getElementAt(i+1).hasBiasNeuron == true) {next_layer_size -= 1;}
+			if (layers.get(i+1).hasBiasNeuron == true) {next_layer_size -= 1;}
 			
 			//Chaque matrice est initialisée avec des valeurs aléatoires
 			double [][] new_weights = new double[next_layer_size][current_layer_size];
@@ -568,15 +565,15 @@ public class Net {
 	 * Ces matrices sont remplies de ,{0.0, sauf pour les index des BiasNeuron (où l'on a des 1.0).
 	 */
 	public void initializeActivations() {
-		for (int i=0; i<lcCouches.getSize(); i++) {
-			int current_layer_size = lcCouches.getElementAt(i).layerSize;
+		for (int i=0; i<layers.size(); i++) {
+			int current_layer_size = layers.get(i).layerSize;
 			double [][] activation_vector = new double[current_layer_size][1];
 			// On transforme le double[][] en RealMatrix
 			RealMatrix activations_matrix = new Array2DRowRealMatrix(activation_vector);
 			
 			// On initialise chaque valeur des activation_matrix
-			for (int j=0; j<lcCouches.getElementAt(i).layerSize; j++) {
-				Neuron current_neuron = lcCouches.getElementAt(i).neurons.get(j);
+			for (int j=0; j<layers.get(i).layerSize; j++) {
+				Neuron current_neuron = layers.get(i).neurons.get(j);
 				activations_matrix.setEntry(j, 0, current_neuron.activation);
 			}
 			//On rajoute le tout à la DataBase.activations
@@ -593,9 +590,9 @@ public class Net {
 	 * z = SUM(x * poids) + bias
 	 */
 	public void initializeWeightedInputs() {
-		for (int i=0; i<lcCouches.getSize(); i++) {
-			int current_layer_size = lcCouches.getElementAt(i).layerSize;
-			if (lcCouches.getElementAt(i).hasBiasNeuron == true) {current_layer_size -= 1;}
+		for (int i=0; i<layers.size(); i++) {
+			int current_layer_size = layers.get(i).layerSize;
+			if (layers.get(i).hasBiasNeuron == true) {current_layer_size -= 1;}
 			
 			double [][] weighted_inputs_vector = new double[current_layer_size][1];
 			// On transforme le double[][] en RealMatrix
@@ -603,7 +600,7 @@ public class Net {
 			
 			// On initialise chaque valeur des weighted_inputs_matrix
 			for (int j=0; j<current_layer_size; j++) {
-				Neuron current_neuron = lcCouches.getElementAt(i).neurons.get(j);
+				Neuron current_neuron = layers.get(i).neurons.get(j);
 				weighted_inputs_matrix.setEntry(j, 0, current_neuron.activation);
 			}
 			//On rajoute le tout à la DataBase.activations
@@ -618,9 +615,9 @@ public class Net {
 	 * L'erreur de chaque Layer est utilisée pour calculer les mises à jour des poids.
 	 */
 	public void initializeLayerError() {
-		for (int i=0; i<lcCouches.getSize(); i++) {
-			int current_layer_size = lcCouches.getElementAt(i).layerSize;
-			if (lcCouches.getElementAt(i).hasBiasNeuron == true) {current_layer_size -= 1;}
+		for (int i=0; i<layers.size(); i++) {
+			int current_layer_size = layers.get(i).layerSize;
+			if (layers.get(i).hasBiasNeuron == true) {current_layer_size -= 1;}
 			
 			double [][] error_vector = new double[current_layer_size][1];
 			// On transforme le double[][] en RealMatrix
@@ -628,7 +625,7 @@ public class Net {
 			
 			// On initialise chaque valeur des weighted_inputs_matrix
 			for (int j=0; j<current_layer_size; j++) {
-				Neuron current_neuron = lcCouches.getElementAt(i).neurons.get(j);
+				Neuron current_neuron = layers.get(i).neurons.get(j);
 				error_matrix.setEntry(j, 0, current_neuron.activation);
 			}
 			//On rajoute le tout à la DataBase.activations
@@ -656,7 +653,7 @@ public class Net {
 		int index = netDataBase.layerError.size()-1;
 		
 		RealMatrix right_member = new Array2DRowRealMatrix();
-		switch (this.lcCouches.getElementAt(lcCouches.getSize()-1).activation_function) {
+		switch (this.layers.get(layers.size()-1).activation_function) {
 			case "sigmoid":
 				//right_member correspond à [sigmoid(z) * (1-sigmoid(z))]
 				right_member = netDataBase.activations.get(index).copy();
@@ -719,12 +716,12 @@ public class Net {
 	 */
 	public void backPropagateError() {
 		//Boucle sur toutes les layers l = L-1, L-2, ... , 1
-		for (int i=lcCouches.getSize()-2; i>0; i--) {
+		for (int i=layers.size()-2; i>0; i--) {
 //			System.out.println(i);
 			
 			RealMatrix left_member = netDataBase.weights.get(i).copy();
 			//Si la layer en question a un BiasNeuron, on ne veut pas ses poids pour le calcul
-			if (lcCouches.getElementAt(i).hasBiasNeuron == true) {
+			if (layers.get(i).hasBiasNeuron == true) {
 				left_member = left_member.getSubMatrix(0, left_member.getRowDimension()-1, 0, left_member.getColumnDimension()-2);
 			}
 			left_member = left_member.transpose().multiply(netDataBase.layerError.get(i+1));
@@ -734,8 +731,8 @@ public class Net {
 			RealMatrix right_member = netDataBase.weightedInputs.get(i).copy();
 			
 			// THIS is weird... makes all layers use last layer function
-//			switch (this.layers.get(lcCouches.getSize()-1).activation_function) {        //ALTERNATIVE WAY?
-			switch (this.lcCouches.getElementAt(i).activation_function) {
+//			switch (this.layers.get(layers.size()-1).activation_function) {        //ALTERNATIVE WAY?
+			switch (this.layers.get(i).activation_function) {
 				case "sigmoid":
 					right_member = sigmoidPrime(right_member);
 //					System.out.println(right_member);
@@ -773,10 +770,10 @@ public class Net {
 		
 		
 		
-		for (int i=lcCouches.getSize()-1; i>0; i--) {
+		for (int i=layers.size()-1; i>0; i--) {
 			
 			RealMatrix sum = MatrixUtils.createRealMatrix(netDataBase.weights.get(i-1).getRowDimension(), netDataBase.weights.get(i-1).getColumnDimension());
-			if (lcCouches.getElementAt(i-1).hasBiasNeuron == true) {
+			if (layers.get(i-1).hasBiasNeuron == true) {
 				sum = sum.getSubMatrix(0, sum.getRowDimension()-1, 0, sum.getColumnDimension()-2);
 			}
 //				double[][] data = sum.getData();
@@ -786,7 +783,7 @@ public class Net {
 			for (int j=0; j<batchErrors.size(); j++) {
 				RealMatrix current_batch_error = batchErrors.get(j).get(i).copy();
 				RealMatrix a_transpose = batchActivations.get(j).get(i-1).copy();
-				if (lcCouches.getElementAt(i-1).hasBiasNeuron == true) {
+				if (layers.get(i-1).hasBiasNeuron == true) {
 					a_transpose = a_transpose.getSubMatrix(0, a_transpose.getRowDimension()-2, 0, a_transpose.getColumnDimension()-1);
 				}
 
@@ -805,7 +802,7 @@ public class Net {
 
 			
 			RealMatrix weights_to_update = netDataBase.weights.get(i-1).copy();
-			if (lcCouches.getElementAt(i-1).hasBiasNeuron == true) {
+			if (layers.get(i-1).hasBiasNeuron == true) {
 				weights_to_update = weights_to_update.getSubMatrix(0, weights_to_update.getRowDimension()-1, 0, weights_to_update.getColumnDimension()-2);
 			}
 //			System.out.println("old_weights : " + weights_to_update);
@@ -825,8 +822,8 @@ public class Net {
 //		System.out.println("\n BIASES \n");
 		
 		
-		for (int i=lcCouches.getSize()-1; i>-1; i--) {
-			if (lcCouches.getElementAt(i).hasBiasNeuron == true) {
+		for (int i=layers.size()-1; i>-1; i--) {
+			if (layers.get(i).hasBiasNeuron == true) {
 				RealMatrix sum = MatrixUtils.createRealMatrix(netDataBase.layerError.get(i+1).getRowDimension(), netDataBase.layerError.get(i+1).getColumnDimension());
 	//			if (layers.get(i-1).hasBiasNeuron == true) {
 	//				sum = sum.getSubMatrix(0, sum.getRowDimension()-1, 0, sum.getColumnDimension()-2);
@@ -876,7 +873,7 @@ public class Net {
 		
 //////////////////////OLD CODE : KEEP FOR REFERENCE ////////////////////////////////////////////////////////////////////////////
 		
-//		for (int i=lcCouches.getSize()-1; i>0; i--) {	
+//		for (int i=layers.size()-1; i>0; i--) {	
 //			RealMatrix to_subtract = netDataBase.layerError.get(i).copy();
 //			RealMatrix a_transpose = netDataBase.activations.get(i-1).copy();
 //			if (layers.get(i-1).hasBiasNeuron == true) {
@@ -904,7 +901,7 @@ public class Net {
 //			System.out.println("-");
 //		}
 		////////  UPDATE BIASES /////////////////////
-//		for (int i=lcCouches.getSize()-1; i>-1; i--) {
+//		for (int i=layers.size()-1; i>-1; i--) {
 //			if (layers.get(i).hasBiasNeuron == true) {
 ////				System.out.println(i + " has bias");
 //				RealMatrix to_subtract = netDataBase.layerError.get(i+1).copy();
