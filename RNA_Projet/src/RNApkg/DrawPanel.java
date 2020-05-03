@@ -9,6 +9,7 @@ import java.awt.geom.Ellipse2D;
 
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class DrawPanel extends JPanel{
 //	private int nbrNeurones;
 	private boolean isBiasNeuron;

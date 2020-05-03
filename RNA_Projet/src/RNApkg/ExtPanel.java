@@ -22,6 +22,7 @@ import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class ExtPanel extends JComponent{
 	ArrayList<ArrayList<Point>> neuronCoords;
 	ArrayList<ArrayList<int[]>> neuronPanelDimensions;
