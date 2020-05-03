@@ -1,11 +1,10 @@
-// test commi
 package RNApkg;
 
 import java.util.ArrayList;
 import org.apache.commons.math3.linear.*;
 
-/* Classe qui représente une "couche" du RNA.
- * S'étend aux sous-classes InputLayer, HiddenLayer et OutputLayer.
+/* Classe qui reprï¿½sente une "couche" du RNA.
+ * S'ï¿½tend aux sous-classes InputLayer, HiddenLayer et OutputLayer.
  * 
  * Un objet Layer garde un ArrayList contenant des objets Neuron.
  * 
@@ -13,7 +12,7 @@ import org.apache.commons.math3.linear.*;
  * _______________________________________________________________________________
  * Attributs:
  * 
- * final Net parent : Référence à l'objet Net qui contient la Layer
+ * final Net parent : Rï¿½fï¿½rence ï¿½ l'objet Net qui contient la Layer
  * 
  * String activation_function : choix de fonction d'activation pour les neurones
  * de cette Layer ( "sigmoid" pour l'instant )
@@ -48,7 +47,7 @@ public class Layer {
 				+ ", layerSize=" + layerSize + ", hasBiasNeuron=" + hasBiasNeuron + "]";
 	}
 
-	/* Applique la fonction sigmoid sur chaque entrée d'un matrice 1D (vecteur) d'activations.
+	/* Applique la fonction sigmoid sur chaque entrï¿½e d'un matrice 1D (vecteur) d'activations.
 	 */
 	public static void sigmoid(RealMatrix x) {
 		for (int row=0; row<x.getRowDimension(); row++) {
@@ -57,34 +56,48 @@ public class Layer {
 	}
 	
 
+	public static void relu(RealMatrix x) {
+		for (int row=0; row<x.getRowDimension(); row++) {
+			x.setEntry( row, 0, (Math.max(0, x.getEntry(row, 0))) );
+		}
+	}
+	
+	
+	public static void lrelu(RealMatrix x) {
+		for (int row=0; row<x.getRowDimension(); row++) {			
+			if (x.getEntry(row, 0) < 0) {
+				x.setEntry( row, 0, (0.01 * x.getEntry(row, 0)) );
+			}
+		}
+	}
 	
 
-	/* Rajoute un objet Neuron (RegularNeuron ou BiasNeuron) à la Layer
+	/* Rajoute un objet Neuron (RegularNeuron ou BiasNeuron) ï¿½ la Layer
 	 * ________________________________________________________________
-	 * Paramètres :
+	 * Paramï¿½tres :
 	 * 
 	 * String neuron_type : "regular" ou "bias"
 	 */
 	public void addNeuron(String neuron_type) {
-		Neuron new_neuron = new Neuron("sigmoid", 0.0);
+		Neuron new_neuron = new Neuron();
 		
 		switch (neuron_type) {
 			case "regular":
-				new_neuron = new RegularNeuron();
+				new_neuron = new RegularNeuron(this.activation_function, 0);
 				this.neurons.add(new_neuron);
 				break;
 			case "bias":
-				new_neuron = new BiasNeuron();
+				new_neuron = new BiasNeuron(this.activation_function, 0);
 				this.neurons.add(new_neuron);
 				break;
 		}
-		//Met à jour la taille de la Layer
+		//Met ï¿½ jour la taille de la Layer
 		this.layerSize += 1;
 	}
 
 
-	/* Méthode qui effectue la forward-propagation.
-	 * Différent corps de méthode selon la sous-classe de Layer.
+	/* Mï¿½thode qui effectue la forward-propagation.
+	 * Diffï¿½rent corps de mï¿½thode selon la sous-classe de Layer.
 	 * 
 	 */
 	public void forwardPropagate(double[][] x_test) {
@@ -101,12 +114,12 @@ class InputLayer extends Layer {
 		super(parent, activation_function);
 	}
 	
-	
+
 	@Override
 	public void forwardPropagate(double[][] x_test) {
 		ArrayList<RealMatrix> activations = parent.netDataBase.activations;
 		
-		//A chaque itération d'entraînement, on met à jour dans la DataBase les activations d'Input
+		//A chaque itï¿½ration d'entraï¿½nement, on met ï¿½ jour dans la DataBase les activations d'Input
 		for (int n=0; n<layerSize; n++) {
 			Neuron current_neuron = this.neurons.get(n);
 			activations.get(0).setEntry(n, 0, current_neuron.activation);
@@ -127,29 +140,35 @@ class HiddenLayer extends Layer {
 	@Override
 	public void forwardPropagate(double[][] x_test) {	
 		DataBase dataBase = parent.netDataBase;
-		int index = parent.layers.indexOf(this);
+		int index = parent.lcCouches.indexOf(this);
 		
-		RealMatrix old_activation = dataBase.activations.get(index);
-		RealMatrix new_activation = dataBase.activations.get(index-1);
+		RealMatrix current_layer_activation = dataBase.activations.get(index);
+		RealMatrix previous_layer_activation = dataBase.activations.get(index-1).copy();
 		//On multiplie la matrice des poids par la matrice des activations
-		new_activation = dataBase.weights.get(index-1).multiply(new_activation);
+		previous_layer_activation = dataBase.weights.get(index-1).multiply(previous_layer_activation);
 		
 		//Avant d'appliquer sigmoid, on sauve la valeur pour chaque neurone z = [w * x + b] dans weightedInputs
-		RealMatrix weighted_inputs = new Array2DRowRealMatrix(new_activation.getData());
+		RealMatrix weighted_inputs = new Array2DRowRealMatrix(previous_layer_activation.getData());
 		dataBase.weightedInputs.set(index, weighted_inputs);
 		
-		//On applique la fonction d'activation de la Layer à la matrice obtenue
+		//On applique la fonction d'activation de la Layer Ã  la matrice obtenue
 		switch (activation_function) {
 			case "sigmoid":
-				sigmoid(new_activation);
+				sigmoid(previous_layer_activation);
+				break;
+			case "relu":
+				relu(previous_layer_activation);
+				break;
+			case "lrelu":
+				lrelu(previous_layer_activation);
 				break;
 		}
 		
-		old_activation.setSubMatrix(new_activation.getData(), 0, 0);
-		dataBase.activations.set(index, old_activation);
-//		System.out.println(old_activation);
+		current_layer_activation.setSubMatrix(previous_layer_activation.getData(), 0, 0);
+		dataBase.activations.set(index, current_layer_activation);
+//		System.out.println(current_layer_activation);
 		
-		//Mets à jour le RNA avec la nouvelle matrice d'activation du DataBase.
+		//Mets ï¿½ jour le RNA avec la nouvelle matrice d'activation du DataBase.
 		this.parent.netDataBase.sendActivationsToNeurons();		
 	}
 }
@@ -166,29 +185,35 @@ class OutputLayer extends Layer {
 	@Override
 	public void forwardPropagate(double[][] x_test) {
 		DataBase dataBase = parent.netDataBase;
-		int index = parent.layers.indexOf(this);
+		int index = parent.lcCouches.indexOf(this);
 		
-		RealMatrix old_activation = dataBase.activations.get(index);
-		RealMatrix new_activation = dataBase.activations.get(index-1);
+		RealMatrix current_layer_activation = dataBase.activations.get(index);
+		RealMatrix previous_layer_activation = dataBase.activations.get(index-1).copy();
 		//On multiplie la matrice des poids par la matrice des activations
-		new_activation = dataBase.weights.get(index-1).multiply(new_activation);
+		previous_layer_activation = dataBase.weights.get(index-1).multiply(previous_layer_activation);
 		
 		//Avant d'appliquer sigmoid, on sauve la valeur pour chaque neurone z = [w * x + b] dans weightedInputs
-		RealMatrix weighted_inputs = new Array2DRowRealMatrix(new_activation.getData());
+		RealMatrix weighted_inputs = new Array2DRowRealMatrix(previous_layer_activation.getData());
 		dataBase.weightedInputs.set(index, weighted_inputs);
 		
-		//On applique la fonction d'activation de la Layer à la matrice obtenue
+		//On applique la fonction d'activation de la Layer ï¿½ la matrice obtenue
 		switch (activation_function) {
 			case "sigmoid":
-				sigmoid(new_activation);
+				sigmoid(previous_layer_activation);
+				break;
+			case "relu":
+				relu(previous_layer_activation);
+				break;
+			case "lrelu":
+				lrelu(previous_layer_activation);
 				break;
 		}
 		
-		old_activation.setSubMatrix(new_activation.getData(), 0, 0);
-		dataBase.activations.set(index, old_activation);
-//		System.out.println(old_activation);
+		current_layer_activation.setSubMatrix(previous_layer_activation.getData(), 0, 0);
+		dataBase.activations.set(index, current_layer_activation);
+//		System.out.println(current_layer_activation);
 		
-		//Mets à jour le RNA avec la nouvelle matrice d'activation du DataBase.
+		//Mets ï¿½ jour le RNA avec la nouvelle matrice d'activation du DataBase.
 		this.parent.netDataBase.sendActivationsToNeurons();
 	}
 

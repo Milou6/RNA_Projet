@@ -1,19 +1,18 @@
-// test commit
 package RNApkg;
 
 import java.util.Arrays;
 
 import org.apache.commons.math3.linear.*;
 
-/* Classe qui représente les neurones individuels du RNA.
- * S'étend aux sous-classes RegularNeuron et BiasNeuron.
+/* Classe qui reprï¿½sente les neurones individuels du RNA.
+ * S'ï¿½tend aux sous-classes RegularNeuron et BiasNeuron.
  * 
  * _______________________________________________________________________________
  * Attributs:
  * 
- * String activation_function : Définit à la construction le type de fonction d'activation du neurone ("sigmoid", "tanh")
+ * String activation_function : Dï¿½finit ï¿½ la construction le type de fonction d'activation du neurone ("sigmoid", "tanh")
  * 
- * double activation : La valeur actuelle du neurone. Par défaut 0.0 pour les RegularNeuron, et 1.0 pour les BiasNeuron
+ * double activation : La valeur actuelle du neurone. Par dï¿½faut 0.0 pour les RegularNeuron, et 1.0 pour les BiasNeuron
  * 
  * ArrayList<Double> forwardWeights : Contient les poids partant du neurone actuel, vers tous les RegularNeuron de la Layer suivante
  */
@@ -30,6 +29,10 @@ public class Neuron {
 		this.forwardWeights = MatrixUtils.createRealMatrix(1, 1);
 	}
 	
+	public Neuron() {
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public String toString() {
 		if (this instanceof RegularNeuron) {
@@ -48,8 +51,9 @@ public class Neuron {
  */
 class RegularNeuron extends Neuron {
 	
-	public RegularNeuron() {
-		super("sigmoid", 0.0);
+	public RegularNeuron(String activation_function, double activation) {
+		super(activation_function, activation);
+		this.activation = 0;
 		
 	}
 }
@@ -59,8 +63,8 @@ class RegularNeuron extends Neuron {
  */
 class BiasNeuron extends Neuron {
 	
-	public BiasNeuron() {
-		super("sigmoid", 0.01);
-		
+	public BiasNeuron(String activation_function, double activation) {
+		super(activation_function, activation);
+		this.activation = 0.01;
 	}
 }
