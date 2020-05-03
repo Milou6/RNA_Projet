@@ -1062,5 +1062,5 @@ public class ApplicationWindow {
 	
 	
 	
-	
 }
+
