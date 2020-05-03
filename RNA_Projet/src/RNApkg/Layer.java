@@ -216,5 +216,5 @@ class OutputLayer extends Layer {
 		//Mets � jour le RNA avec la nouvelle matrice d'activation du DataBase.
 		this.parent.netDataBase.sendActivationsToNeurons();
 	}
-
 }
+
