@@ -74,7 +74,6 @@ public class ApplicationWindow {
 	private  JPanel pnlAffichage;
 	
 	private JTabbedPane tabAffichage;
-	private JPanel pnlRNA;
 	private JPanel pnlGraph;
 	private JLabel lblTitre;
 	
@@ -154,9 +153,12 @@ public class ApplicationWindow {
 //				mainFrame.remove(mainFrame.getComponent(0).get);
 //				arrowPanel.removeAll();
 //				clearArrows();
-                drawLayerPanels();
-                drawArrows();
-                printNeuronValues();
+                if (myNet.lcCouches.getSize() > 0)
+                {
+		            drawLayerPanels();
+		            drawArrows();
+		            printNeuronValues();
+                }
             }
 		});
 		
@@ -170,11 +172,6 @@ public class ApplicationWindow {
 		// On créer des onglets "tab" pour afficher les différente partie de l'affichage sans les perdres
 		tabAffichage = new JTabbedPane(JTabbedPane.TOP);
 		//pnlAffichage.add(tabAffichage, "cell 0 0,grow");
-		
-		// Onglet qui acceuille l'affichage du RNA
-		pnlRNA = new JPanel();
-		//tabAffichage.addTab("Réseaux de neurone", null, pnlRNA, null);
-		pnlRNA.setLayout(new MigLayout("", "[97px]", "[25px,grow]"));
 		
 		// Onglet qui acceuille l'affichage du graphe d'erreur
 		pnlGraph = new JPanel();
@@ -191,7 +188,6 @@ public class ApplicationWindow {
 		pnlAffichageDRAW = new JLayeredPane();
 		pnlAffichageDRAW.setBounds(0, 0, 700, 610);
 		pnlAffichageDRAW.setLayout(null);	
-		pnlRNA.add(pnlAffichageDRAW);
 		
 		//A quoi je sers ?
 		networkPanel = new JPanel();
@@ -686,7 +682,8 @@ public class ApplicationWindow {
 		try {
 			pnlAffichage.remove(lblTitre);
 			pnlAffichage.add(tabAffichage, "cell 0 0,grow");
-			tabAffichage.addTab("Réseaux de neurone", null, pnlRNA, null);
+			//tabAffichage.addTab("Réseaux de neurone", null, pnlRNA, null);
+			tabAffichage.addTab("Réseaux de neurone", null, pnlAffichageDRAW, null);
 		} catch (Exception e) {
 			System.out.println(e);
 		}	
