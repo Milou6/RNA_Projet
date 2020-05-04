@@ -41,11 +41,34 @@ public class Layer {
 	}
 	
 	
+//	@Override
+//	public String toString() {
+//		return "Layer [parent=" + parent + ", activation_function=" + activation_function + ", neurons=" + neurons
+//				+ ", layerSize=" + layerSize + ", hasBiasNeuron=" + hasBiasNeuron + "]";
+//	}
+	
 	@Override
 	public String toString() {
-		return "Layer [parent=" + parent + ", activation_function=" + activation_function + ", neurons=" + neurons
-				+ ", layerSize=" + layerSize + ", hasBiasNeuron=" + hasBiasNeuron + "]";
+		return "Layer : " + this.getActivation() + "/ Nbr Neurone : " + this.getlayerSize() + "/ Neurone de Biais : " + getHasBiasNeuron();
 	}
+	
+	public String getActivation() {
+		return this.activation_function;
+	}
+	
+	public int getlayerSize() {
+		return this.layerSize;
+	}
+	
+	public Net getParent() {
+		return this.parent;
+	}
+	
+	public boolean getHasBiasNeuron() {
+		return this.hasBiasNeuron;	
+	}
+	
+	
 
 	/* Applique la fonction sigmoid sur chaque entr�e d'un matrice 1D (vecteur) d'activations.
 	 */

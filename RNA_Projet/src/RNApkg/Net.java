@@ -66,8 +66,18 @@ public class Net {
 		for(int i = 0; i < lcCouches.getSize();i++)
 		{
 			impression += "\n Layer " + lcCouches.indexOf(lcCouches.getElementAt(i)) + " :";
-			for (Neuron n : lcCouches.getElementAt(i).neurons) {
-				impression+=n;
+//			for (Neuron n : lcCouches.getElementAt(i).neurons) {
+//				impression+=n;
+//			}
+			impression += "Taille = "+lcCouches.getElementAt(i).getlayerSize()+" / ";
+			impression += "Type d'activation = "+lcCouches.getElementAt(i).getActivation()+" / ";
+			if(lcCouches.getElementAt(i).getHasBiasNeuron())
+			{
+				impression += "Neurone de Biais = Oui";
+			}
+			else
+			{
+				impression += "Neurone de Biais = Non";
 			}
 		}
 			
@@ -1031,7 +1041,7 @@ public class Net {
 		Net myNet = new Net();
 		
 		// Importation des données
-		ArrayList<double[][]> imported_data = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
+		ArrayList<double[][]> imported_data = myNet.importCSV("../RNA_Projet/src/donneeEntrainement/XOR_data.csv", true, 1);
 		final double [][] x_train = imported_data.get(0);
 		final double [][] y_train = imported_data.get(1);
 		

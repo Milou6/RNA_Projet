@@ -1,8 +1,9 @@
 package RNApkg;
 
 import java.util.ArrayList;
-
 import javax.swing.AbstractListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
 @SuppressWarnings("serial")// j'aime pas les triangles jaune
 public class LIMCouche extends AbstractListModel<Layer> {
@@ -12,7 +13,7 @@ public class LIMCouche extends AbstractListModel<Layer> {
 	public Layer getElementAt(int index) {
 		return couches.get(index);
 	}
-
+	
 	@Override
 	public int getSize() {
 		return couches.size();
@@ -31,5 +32,10 @@ public class LIMCouche extends AbstractListModel<Layer> {
 	public int indexOf(Layer Layer) {
 		
 		return couches.indexOf(Layer);
+	}
+	
+	@Override
+	public ListDataListener[] getListDataListeners() {
+		return super.getListDataListeners();
 	}
 }

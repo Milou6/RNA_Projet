@@ -155,13 +155,13 @@ public class ApplicationWindow {
 //				mainFrame.remove(mainFrame.getComponent(0).get);
 //				arrowPanel.removeAll();
 //				clearArrows();
-//                if (myNet.lcCouches.getSize() > 0)
-//                {
+                if (myNet.lcCouches.getSize() > 0)
+                {
 		            drawLayerPanels();
 		            drawArrows();
 		            pnlAffichageDRAW.repaint();
 		            printNeuronValues();
-//                }
+                }
             }
 		});
 		
@@ -175,7 +175,7 @@ public class ApplicationWindow {
 		// On cr�er des onglets "tab" pour afficher les diff�rente partie de l'affichage sans les perdres
 		tabAffichage = new JTabbedPane(JTabbedPane.TOP);
 //		tabAffichage.setLayout(new BoxLayout(pnlAffichage, BoxLayout.X_AXIS));
-		pnlAffichage.add(tabAffichage, "cell 0 0,grow");
+//		pnlAffichage.add(tabAffichage, "cell 0 0,grow");
 		
 		// Onglet qui acceuille l'affichage du graphe d'erreur
 		pnlGraph = new JPanel();
@@ -510,7 +510,7 @@ public class ApplicationWindow {
 					StepTrainNumberOfSteps = 5;
 					StepTrainLastStepSize = 500;
 					
-					ArrayList<double[][]> donneesInput = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
+					ArrayList<double[][]> donneesInput = myNet.importCSV("../RNA_Projet/src/donneeEntrainement/XOR_data.csv", true, 1);
 					x_train = donneesInput.get(0);
 					y_train = donneesInput.get(1);
 					
