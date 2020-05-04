@@ -34,6 +34,7 @@ import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.apache.commons.math3.linear.RealMatrix;
 import org.jfree.chart.ChartPanel;
 
 import javax.swing.JPanel;
@@ -193,7 +194,7 @@ public class ApplicationWindow {
 			neuronCoords.add(layer_points);
 			neuronPanelDimensions.add(dimensionsList);
 		}
-		// POUR DEBUG
+		// POUR DEBUG ///////////////////////////////
 //		for (int i=0; i<neuronCoords.size(); i++) {
 //			System.out.println("\n layer " + i);
 //			for (int j=0; j<neuronCoords.get(i).size(); j++) {
@@ -207,6 +208,7 @@ public class ApplicationWindow {
 //				System.out.println(Arrays.toString(neuronPanelDimensions.get(i).get(j)));
 //			}
 //		}
+		// POUR DEBUG ///////////////////////////////
 		
 		
 //		// On doit passer au constructeur de ExtPanel l'info sur les neurones Biais du réseau
@@ -219,17 +221,14 @@ public class ApplicationWindow {
 		}
 		System.out.println(Arrays.toString(layerHasBiasNeuron));
 		
-		try {
-			pnlAffichage.remove(arrowPanel);
-			System.out.println("ArrowPanel removed");
-		}
-		catch(Exception e) {
-		  System.out.println("no ArrowPanel to remove");
-		}
-		System.out.println("got after");
+		try {pnlAffichage.remove(arrowPanel); }
+		catch(Exception e) {/*System.out.println("no ArrowPanel to remove");*/}
+		
+		ArrayList<RealMatrix> NeuronWeights = myNet.netDataBase.weights;
 		
 		// On appelle le constructeur de ExtPanel, en lui donnant les infos sur les coordonnées/dimensions des panels
-    	ExtPanel returnPanel = new ExtPanel(neuronCoords, neuronPanelDimensions, pnlAffichage, layerHasBiasNeuron);
+    	ExtPanel returnPanel = new ExtPanel(neuronCoords, neuronPanelDimensions, pnlAffichage, NeuronWeights, layerHasBiasNeuron);
+    	
    	
     	arrowPanel = returnPanel;
 	    arrowPanel.setLayout(new GridLayout(0, 1));
@@ -240,110 +239,8 @@ public class ApplicationWindow {
 	    
 	    ////////////////////// DEBUG ////////////////////////
 //	    System.out.println(pnlAffichage.getComponentCount());
-	    
-	    
-	       // We need to remove old mouselisteners
-//		   try {
-//		   java.awt.event.MouseMotionListener[] mouseListenersList = pnlAffichage.getMouseMotionListeners();
-//			   for (MouseMotionListener ml : mouseListenersList) {
-//			   		pnlAffichage.removeMouseMotionListener(ml);	
-//			   }
-//		   }
-//		   catch (Exception e) {
-//		   }
-//
-//		   
-//		MouseMotionListener ml = new MouseAdapter() {
-//			public void mouseMoved(MouseEvent e) {
-////		    	int x = e.getXOnScreen();
-////				int y = e.getYOnScreen();
-//				int x = e.getX();
-//				int y = e.getY();
-//		    	
-//			    for (Line2D l : linesList) {
-////			    	if (l.intersects(x-20, y-20, x+20, y+20)) {
-//			    	if (l.ptSegDist(e.getX(), e.getY()) <= 10) {
-//				    	System.out.println("SECTTTTTTTTTTTTTTT");
-////				    	Point2D start = l.getP1();
-////				    	Point2D end = l.getP2();
-////				    	int x0 = (int) l.getX1();
-//				    	g2d.setColor(Color.BLUE);
-//				    	g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-//				    	
-//				    	Double myLine = new Line2D.Double( l.getX1(), l.getY1(), l.getX2(), l.getY2());
-////				    	g2d.set
-////				    	g2d.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
-//				    	g2d.draw(myLine);
-////				    	pnlAffichage.updateUI();
-//				    	pnlAffichage.repaint();
-//			    	}
-//			    }
-//		    }
-////
-////			
-////	    public void mouseClicked(MouseEvent e) {
-////		    	int x = e.getXOnScreen();
-////		    	int y = e.getYOnScreen();
-////		    	
-////			    for (Line2D l : linesList) {
-//////			    	if (l.intersects(x-20, y-20, x+20, y+20)) {
-////			    	if (l.ptSegDist(e.getX(), e.getY()) <= 10) {
-////				    	System.out.println("SECTTTTTTTTTTTTTTT");
-//////				    	Point2D start = l.getP1();
-//////				    	Point2D end = l.getP2();
-//////				    	int x0 = (int) l.getX1();
-////				    	g2d.setColor(Color.BLUE);
-////				    	g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-//////				    	g2d.set
-////				    	g2d.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
-////				    	pnlAffichage.updateUI();
-////			    	}
-////			    }
-////		    	
-////		    	System.out.println("x " + x + " y " + y);  
-////			}
-////			
-////			public void mousePressed(MouseEvent e) {
-////				System.out.println("Mouse pressed; # of clicks: "
-////			                    + e.getClickCount());
-////			    }
-////
-////			    public void mouseReleased(MouseEvent e) {
-////			    	System.out.println("Mouse released; # of clicks: "
-////			                    + e.getClickCount());
-////			    }
-////
-////			    public void mouseEntered(MouseEvent e) {
-////			    	System.out.println("Mouse entered");
-////			    	
-////
-////				    for (Line2D l : linesList) {
-//////					    	createStrokedShape(l);
-////				    	
-//////					    	if (l.intersects(x-20, y-20, x+20, y+20)) {
-////				    	if (l.ptSegDist(e.getX(), e.getY()) <= 10) {
-////					    	System.out.println("SECTTTTTTTTTTTTTTT");	
-////				    	}
-////				    }
-////
-////
-////			    }
-////
-////			    public void mouseExited(MouseEvent e) {
-////			    	System.out.println("Mouse exited");
-////			    }
-////  
-//	    };
-//	    
-////		this.addMouseListener(ml);
-//		pnlAffichage.addMouseMotionListener(ml);
-	    
-	    
-	    
-	    
-	    pnlAffichage.updateUI();
-	    
 
+	    pnlAffichage.updateUI();
     }
     
 
@@ -362,8 +259,6 @@ public class ApplicationWindow {
 			int panel_width = pnlAffichage.getWidth() / myNet.layers.size();
 			int panel_height = 0;
 			panel_height = (pnlAffichage.getHeight());
-	//		System.out.println("panel_width : " + panel_width);
-	//		System.out.println("panel_height : " + panel_height);
 			//  /CALCUL DES DIMENSIONS POUR LES PANELS///////////////
 	
 			// Boucle sur les Layers
@@ -837,45 +732,46 @@ public class ApplicationWindow {
 				int result = JOptionPane.showConfirmDialog(null, Entrainement, "Step-Train", JOptionPane.PLAIN_MESSAGE);
 				
 				if (result == JOptionPane.OK_OPTION) {
-					StepTrainEpochsPerStep = Integer.parseInt(NbeEpochsParStep.getText());
-					StepTrainLearningRate = Double.parseDouble(txtLearningRate.getText());
-					
-					StepTrainNumberOfSteps = Integer.parseInt(txtNbrEpochs.getText()) / Integer.parseInt(NbeEpochsParStep.getText()) - 1;
-					System.out.println(StepTrainNumberOfSteps);
-					StepTrainLastStepSize = Integer.parseInt(txtNbrEpochs.getText()) % Integer.parseInt(NbeEpochsParStep.getText());
-
-				
-				
-					// Le système fait déjà le premier Step d'entrainement
-					myNet.train(x_train, y_train, Integer.parseInt(NbeEpochsParStep.getText()), Double.parseDouble(txtLearningRate.getText()) );
-					
-					// On affiche les valeurs des neurones suite à ce premier Step
-					printNeuronValues();
-					
-					
-//				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
-//				// Changer le "false" dans la ligne sous ce bloc -->  btnStepTrain.setEnabled(false);
+//					StepTrainEpochsPerStep = Integer.parseInt(NbeEpochsParStep.getText());
+//					StepTrainLearningRate = Double.parseDouble(txtLearningRate.getText());
+//					
+//					StepTrainNumberOfSteps = Integer.parseInt(txtNbrEpochs.getText()) / Integer.parseInt(NbeEpochsParStep.getText()) - 1;
+//					System.out.println(StepTrainNumberOfSteps);
+//					StepTrainLastStepSize = Integer.parseInt(txtNbrEpochs.getText()) % Integer.parseInt(NbeEpochsParStep.getText());
 //
-//				btnNext.setEnabled(true);
-//				myNet.addLayer("input", "sigmoid", 2, true);
-//				myNet.addLayer("hidden", "sigmoid", 4, true);
-//				myNet.addLayer("output", "sigmoid", 1, false);
 //				
-//				StepTrainLearningRate = 0.5;
-//				StepTrainEpochsPerStep = 900;
-//				StepTrainNumberOfSteps = 5;
-//				StepTrainLastStepSize = 500;
 //				
-//				ArrayList<double[][]> donneesInput = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
-//				x_train = donneesInput.get(0);
-//				y_train = donneesInput.get(1);
-//				
-//				// Premier step automatique
-//				myNet.train(x_train, y_train, StepTrainEpochsPerStep, StepTrainLearningRate);
-//				
-//				clearArrows();
-//				drawLayerPanels();
-//				drawArrows();
+//					// Le système fait déjà le premier Step d'entrainement
+//					myNet.train(x_train, y_train, Integer.parseInt(NbeEpochsParStep.getText()), Double.parseDouble(txtLearningRate.getText()) );
+//					
+//					// On affiche les valeurs des neurones suite à ce premier Step
+//					printNeuronValues();
+					
+					
+				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
+				// Changer le "false" dans la ligne sous ce bloc -->  btnStepTrain.setEnabled(false);
+
+				btnNext.setEnabled(true);
+				btnPrint.setEnabled(true);
+				myNet.addLayer("input", "sigmoid", 2, true);
+				myNet.addLayer("hidden", "sigmoid", 4, true);
+				myNet.addLayer("output", "sigmoid", 1, false);
+				
+				StepTrainLearningRate = 0.5;
+				StepTrainEpochsPerStep = 900;
+				StepTrainNumberOfSteps = 5;
+				StepTrainLastStepSize = 500;
+				
+				ArrayList<double[][]> donneesInput = myNet.importCSV("C:\\Users\\haas_\\Downloads\\P.O.O\\XOR_data.csv", true, 1);
+				x_train = donneesInput.get(0);
+				y_train = donneesInput.get(1);
+				
+				// Premier step automatique
+				myNet.train(x_train, y_train, StepTrainEpochsPerStep, StepTrainLearningRate);
+				
+				clearArrows();
+				drawLayerPanels();
+				drawArrows();
 				// POUR DEBUGGER PLUS RAPIDEMENT ///////////////////////////////////
 					
 					
@@ -899,7 +795,7 @@ public class ApplicationWindow {
 			}
 		});		
 		mainFrame.getContentPane().add(btnStepTrain, "cell 2 4,grow");
-		btnStepTrain.setEnabled(false);
+		btnStepTrain.setEnabled(true);
 		
 //// /BOUTON DE STEP-TRAIN /////////////////////////////////////////////////////////////////////////////////////////////////////////		
 		
