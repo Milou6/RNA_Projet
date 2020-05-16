@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 import javax.swing.AbstractListModel;
 
-@SuppressWarnings("serial")// j'aime pas les triangles jaune
+@SuppressWarnings("serial")
 public class LIMCouche extends AbstractListModel<Layer> {
 	private ArrayList<Layer> couches = new ArrayList<>();
-	
+
 	@Override
 	public Layer getElementAt(int index) {
 		return couches.get(index);
@@ -22,14 +22,14 @@ public class LIMCouche extends AbstractListModel<Layer> {
 		couches.add(couche);
 		fireContentsChanged(this, 0, getSize());
 	}
-	
+
 	public void removeLayer(int index) {
 		couches.remove(index);
 		fireContentsChanged(this, 0, getSize());
 	}
 
 	public int indexOf(Layer Layer) {
-		
+
 		return couches.indexOf(Layer);
 	}
 }
