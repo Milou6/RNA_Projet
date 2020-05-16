@@ -414,6 +414,19 @@ public class ApplicationWindow {
 				int result = JOptionPane.showConfirmDialog(null, Entrainement, "Train network", JOptionPane.PLAIN_MESSAGE);
 
 				if (result == JOptionPane.OK_OPTION) {
+					
+					// On réinitialise le RNA s'il a déjà été entraîné auparavant
+					try {
+						myNet.netDataBase.weights.clear();
+						myNet.netDataBase.activations.clear();
+						myNet.netDataBase.weightedInputs.clear();
+						myNet.netDataBase.layerError.clear();
+						myNet.batchErrors.clear();
+						myNet.networkError.clear();
+					}
+					catch (Exception myNetEmpty) {}
+					
+					
 					myNet.train(x_train, y_train, Integer.parseInt(txtNbrEpochs.getText()), Double.parseDouble(txtLearningRate.getText()));
 
 					// On affiche les valeurs des neurones suite à ce premier Step
@@ -432,10 +445,11 @@ public class ApplicationWindow {
 
 					btnPredict.setEnabled(true);
 					btnPrint.setEnabled(true);
+					
 					btnStepTrain.setEnabled(false);
 					btnAddLayer.setEnabled(false);
 					btnPopLayer.setEnabled(false);
-
+					btnDemoBP.setEnabled(false);
 				} else {
 					txtConsoleOutput.append("\n Action interrompue par l'utilisateur");
 				}
@@ -482,6 +496,8 @@ public class ApplicationWindow {
 							myNet.lcCouches.removeLayer(0);
 						}
 						myNet.lcCouches.removeLayer(0);
+						myNet.batchErrors.clear();
+						myNet.networkError.clear();
 					}
 					catch (Exception empty) {}
 					
@@ -1049,5 +1065,4 @@ public class ApplicationWindow {
 
 		pnlAffichageDRAW.updateUI();
 	}
-
 }
