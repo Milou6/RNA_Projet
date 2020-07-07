@@ -61,10 +61,11 @@ public class ExtPanel extends JComponent{
 					for (Line2D line : l) {
 						if (line.ptSegDist(e.getX(), e.getY()) <= 8) {
 							HLindex = linesList.indexOf(l);
+							repaint();
 						}
 					}
 				}
-				repaint();
+//				repaint();
 			}
 		});
 	}
@@ -158,35 +159,41 @@ public class ExtPanel extends JComponent{
 				g2d.setColor(Color.ORANGE);
 				g2d.setStroke(new BasicStroke(3));
 
-				// On affiche un JLabel avec les poids des lignes HighLightees
+				// On affiche un JLabel avec les poids des lignes Highlightées
 				try {this.remove(weightsLabel);}
 				catch (Exception e) {}
-
+			
 				String weightsLabelString = "<html>";
+				// label_height détermine la hauteur du label
+				int label_height = 0;
 				try {
 					double[][] weightsData = NeuronWeights.get(coordsOfWeightsToFetch[0]).transpose().getData();
 					double[] currentNeuronData = weightsData[coordsOfWeightsToFetch[1]];
 
 					for (double weight : currentNeuronData) {
-						weightsLabelString += (String.valueOf(weight) + "<br/>" );	
+						weightsLabelString += (String.valueOf(weight) + "<br/>" );
+						label_height += 23;
 					}
 					weightsLabelString += "</html>";
 				}
 				catch (Exception e) {}
 
 				weightsLabel.setText(weightsLabelString);
+				
 				weightsLabel.setForeground(new Color(230, 115, 0));
 				weightsLabel.setFont(new Font("OCR A Extended", Font.BOLD, 15));
-				weightsLabel.setVerticalAlignment(JLabel.TOP);
-				weightsLabel.setHorizontalAlignment(JLabel.LEFT);
-				weightsLabel.setBounds(labelX + 30, labelY, 180, 300);
+				weightsLabel.setVerticalAlignment(JLabel.CENTER);
+				weightsLabel.setHorizontalAlignment(JLabel.CENTER);
+				weightsLabel.setBounds(labelX + 30, labelY, 180, label_height);
 
 				Rectangle myRect = new Rectangle();
-				myRect.setBounds(labelX + 30, labelY, 180, 300);
-
-				g2d.draw(myRect);
+				myRect.setBounds(labelX + 30, labelY, 180, label_height);
+				
+				if (label_height != 0) {
+					g2d.draw(myRect);
+				}
 				g2d.setColor(Color.WHITE);
-				g2d.fillRect(labelX + 30, labelY, 180, 300);
+				g2d.fillRect(labelX + 30, labelY, 180, label_height);
 				g2d.setColor(Color.ORANGE);
 
 				weightsLabel.setVisible(true);

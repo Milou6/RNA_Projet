@@ -6,20 +6,26 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -29,6 +35,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -60,8 +67,16 @@ public class ApplicationWindow {
 	private Button btnNext;							// Bouton pour l'entraînement par étapes	
 	private Button btnPredict;						// Bouton permettant de tester le RNA sur une nouvelle série de données
 	private Button btnPrint;						// Bouton qui fait un print de l'état actuel du réseau
+	
 	private JTabbedPane tabAffichage;
 	private JPanel pnlGraph;
+	private JPanel demoPanel;
+	private Button btnForward;
+	private Button btnBackward;
+	private JLabel picLabel;
+	
+	private int demoImgIndex;
+	JScrollPane imageScroll;
 	private JLabel lblTitre;
 	private ChartPanel ErrorChartPanel;
 
@@ -135,11 +150,18 @@ public class ApplicationWindow {
 		mainFrame = new JFrame();
 		mainFrame.setTitle("Projet RNA");
 		mainFrame.setBounds(100, 100, 800, 610);
+//		mainFrame.setResizable(false);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.X_AXIS));
 
 		mainFrame.getContentPane().setLayout(new MigLayout("", "[grow][10px:n][fill]", "[50px:50px][50px:50px][50px:50px][50px:50px][50px:50px][50px:50px][10px:n,grow][grow]"));
 
+		
+		// Onglet pour la démo de la back-propagation
+		imageScroll = new JScrollPane();
+		demoPanel = new JPanel();
+
+		
 		// Permet de re-dessiner les panels de neurones quand on change la taille de la fenêtre
 		mainFrame.addComponentListener( new ComponentAdapter() {
 			@Override
@@ -147,10 +169,15 @@ public class ApplicationWindow {
 				System.out.println("Window Resized: Frame");
 				if (myNet.lcCouches.getSize() > 0)
 				{
+					int index = tabAffichage.getSelectedIndex();
+					
 					drawLayerPanels();
 					drawArrows();
+					
 					pnlAffichageDRAW.repaint();
 					printNeuronValues();
+					redrawDemo(demoPanel, demoImgIndex);
+					tabAffichage.setSelectedIndex(index);
 				}
 			}
 		});
@@ -168,6 +195,8 @@ public class ApplicationWindow {
 		// Onglet qui accueille l'affichage du graphe d'erreur
 		pnlGraph = new JPanel();
 		pnlGraph.setLayout(new MigLayout("", "[grow]", "[grow]"));
+		
+
 
 		// On affiche tout d'abord un titre
 		lblTitre = new JLabel(">>-- Projet RNA --<<");
@@ -192,7 +221,7 @@ public class ApplicationWindow {
 
 
 		//// BOUTON D' AJOUT DE COUCHE /////////////////////////////////////////////////////////////////////////////////
-		btnAddLayer = new Button("addLayer");
+		btnAddLayer = new Button("addLayer()");
 		btnAddLayer.addActionListener(new ActionListener() {
 			/*
 			 * Le RNA (Net.java) doit avoir été créé avant d'utiliser le bouton
@@ -284,7 +313,7 @@ public class ApplicationWindow {
 
 
 		//// BOUTON DE SUPPRESSION DE COUCHE /////////////////////////////////////////////////////////////////////////////////
-		btnPopLayer = new Button("popLayer");
+		btnPopLayer = new Button("popLayer()");
 		btnPopLayer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(myNet.lcCouches.getSize() > 0)
@@ -396,7 +425,7 @@ public class ApplicationWindow {
 
 
 		//// BOUTON D'ENTRAINEMENT DU RESEAU /////////////////////////////////////////////////////////////////////////////////////////
-		btnTrain = new Button("train");
+		btnTrain = new Button("train()");
 		btnTrain.setEnabled(false);
 		btnTrain.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -436,7 +465,7 @@ public class ApplicationWindow {
 					ErrorChartPanel = myNet.errorGraph();
 
 					// On rajoute le graphe retourné par cette méthode au Panel du graphique dans un onglet
-					tabAffichage.addTab("Graph Erreur", null, pnlGraph, null);
+					tabAffichage.addTab("Graph d'Erreur", null, pnlGraph, null);
 
 					pnlGraph.removeAll();
 					pnlGraph.add(ErrorChartPanel);
@@ -460,7 +489,7 @@ public class ApplicationWindow {
 
 
 		//// BOUTON DE DEMO BACK-PROP /////////////////////////////////////////////////////////////////////////////////////////////////////////		
-		btnDemoBP = new Button("Démo Back-Prop");
+		btnDemoBP = new Button("Démo Back-Prop.");
 		btnDemoBP.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
@@ -514,6 +543,7 @@ public class ApplicationWindow {
 					StepTrainLastStepSize = 0;
 
 					ArrayList<double[][]> donneesInput = myNet.importCSV("../RNA_Projet/src/donneeEntrainement/V2_Iris_TRAINING.csv", true, 1);
+//					ArrayList<double[][]> donneesInput = myNet.importCSV(ApplicationWindow.class.getResourceAsStream("V2_Iris_TRAINING.csv"), true, 1);
 					x_train = donneesInput.get(0);
 					y_train = donneesInput.get(1);
 
@@ -528,7 +558,7 @@ public class ApplicationWindow {
 					ErrorChartPanel = myNet.errorGraph();
 
 					// On rajoute le graphe retourné par cette méthode au Panel du graphique dans un onglet
-					tabAffichage.addTab("Graph Erreur", null, pnlGraph, null);
+					tabAffichage.addTab("Graph d'Erreur", null, pnlGraph, null);
 
 					pnlGraph.removeAll();
 					pnlGraph.add(ErrorChartPanel);
@@ -544,6 +574,55 @@ public class ApplicationWindow {
 					btnPopLayer.setEnabled(false);
 
 					btnDemoNext.setEnabled(true);
+					
+
+					// On rajoute le Tab explicatif de la démo
+					ImageIcon icon = new ImageIcon("../RNA_Projet/src/img/img0.png");
+					Image image = icon.getImage();
+					
+					double scale =  (mainFrame.getWidth()*0.8) / icon.getIconWidth();
+					int newX = (int) (icon.getIconWidth() * scale);
+					int newY = (int) (icon.getIconHeight() * scale);
+					Image scaledImage = image.getScaledInstance(newX, newY,  java.awt.Image.SCALE_SMOOTH);
+//					Image newimg = image.getScaledInstance((mainFrame.getWidth()), (mainFrame.getHeight()),  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
+					icon = new ImageIcon(scaledImage);
+					picLabel = new JLabel(icon);
+					
+					picLabel.setBounds(0, 0, mainFrame.getWidth(), mainFrame.getHeight());
+					JScrollPane imageScroll = new JScrollPane(picLabel);
+					imageScroll.getVerticalScrollBar().setUnitIncrement(18);
+					imageScroll.setVisible(true);
+						
+					demoPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
+					demoPanel.add(imageScroll);
+					demoPanel.setVisible(true);
+					
+					tabAffichage.insertTab("Mieux comprendre", null, demoPanel, null, 0);
+					demoImgIndex = 0;
+					
+					// Rajouter les boutons de > et <
+					Button btnForward = new Button("Prochain");
+					btnForward.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							demoImgIndex += 1;
+							System.out.println("demoImgIndex " + demoImgIndex);
+							redrawDemo(demoPanel, demoImgIndex);
+						}
+					});
+					
+					Button btnBackward = new Button("Antérieur");
+					btnBackward.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							demoImgIndex -= 1;
+							System.out.println("demoImgIndex " + demoImgIndex);
+							redrawDemo(demoPanel, demoImgIndex);
+						}
+					});
+					
+					demoPanel.add(btnBackward);
+					demoPanel.add(btnForward);
+					
+
 				}
 				else {
 					System.out.println("User canceled / closed the dialog, result = " + result);
@@ -555,7 +634,7 @@ public class ApplicationWindow {
 
 
 		//// BOUTON Poursuivre DEMO BACK-PROP /////////////////////////////////////////////////////////////////////////////////////////////////////////			
-		btnDemoNext = new Button("Next_Demo");
+		btnDemoNext = new Button("Next");
 		btnDemoNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// Si l'on est pas au dernier Step, entrainer sur un Step complet
@@ -580,6 +659,26 @@ public class ApplicationWindow {
 				pnlGraph.removeAll();
 				pnlGraph.add(ErrorChartPanel);
 				pnlGraph.validate();
+				
+				
+				// On rajoute le Tab explicatif de la démo
+				
+//				ImageIcon icon = new ImageIcon("../RNA_Projet/src/donneeEntrainement/img0.png");
+//				Image image = icon.getImage(); // transform it 
+//				Image newimg = image.getScaledInstance(pnlDemo.getWidth(), -1,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
+//				icon = new ImageIcon(newimg);  // transform it back
+//				
+////				Image myImage;
+//				JLabel picLabel = new JLabel(icon);
+////				JLabel picLabel = new JLabel(new ImageIcon("../RNA_Projet/src/donneeEntrainement/img0.png"));
+//				picLabel.setBounds(0, 0, pnlDemo.getWidth(), pnlDemo.getHeight());
+//				JScrollPane imageScroll = new JScrollPane(picLabel);
+//				imageScroll.setBounds(0, 0, pnlDemo.getWidth(), pnlDemo.getHeight());
+//				imageScroll.getVerticalScrollBar().setUnitIncrement(18);
+//				pnlDemo.add(imageScroll);
+//				pnlDemo.validate();
+				 
+				
 			}
 		});		
 		mainFrame.getContentPane().add(btnDemoNext, "cell 2 4,grow");
@@ -587,7 +686,7 @@ public class ApplicationWindow {
 
 
 		////////// BOUTON DE STEP-TRAIN /////////////////////////////////////////////////////////////////////////////////////////////////////////		
-		btnStepTrain = new Button("Step-train");
+		btnStepTrain = new Button("Step-train()");
 		btnStepTrain.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
@@ -625,7 +724,7 @@ public class ApplicationWindow {
 					ErrorChartPanel = myNet.errorGraph();
 					
 					// On rajoute le graphe retourné par cette méthode au Panel du graphique dans un onglet
-					tabAffichage.addTab("Graph Erreur", null, pnlGraph, null);
+					tabAffichage.addTab("Graph d'Erreur", null, pnlGraph, null);
 					
 					pnlGraph.removeAll();
 					pnlGraph.add(ErrorChartPanel);
@@ -667,7 +766,7 @@ public class ApplicationWindow {
 //					ErrorChartPanel = myNet.errorGraph();
 //
 //					// On rajoute le graphe retourné par cette méthode au Panel du graphique dans un onglet
-//					tabAffichage.addTab("Graph Erreur", null, pnlGraph, null);
+//					tabAffichage.addTab("Graph d'Erreur", null, pnlGraph, null);
 //
 //					pnlGraph.removeAll();
 //					pnlGraph.add(ErrorChartPanel);
@@ -730,7 +829,7 @@ public class ApplicationWindow {
 
 		//// BOUTON DE PREDICTION SUR DE NOUVELLES DONNEES /////////////////////////////////////////////////////////////////////////////////
 		// Il prend un fichier .csv , comme le bouton "ImporterDonnées" 
-		btnPredict = new Button("predict");
+		btnPredict = new Button("predict()");
 		btnPredict.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
@@ -797,7 +896,7 @@ public class ApplicationWindow {
 
 
 		//// AFFICHAGE /////////////////////////////////////////////////////////////////////////////////
-		btnPrint = new Button("print");
+		btnPrint = new Button("print()");
 		btnPrint.setEnabled(false);
 		btnPrint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -814,7 +913,7 @@ public class ApplicationWindow {
 		txtConsoleOutput.setBackground(Color.BLACK);
 		txtConsoleOutput.setText("Sortie Console :");
 		mainFrame.getContentPane().add(txtConsoleOutput, "flowy,cell 0 7 3 1,grow");
-
+ 
 
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
@@ -912,6 +1011,7 @@ public class ApplicationWindow {
 					int[] stored_coords = coords;
 					list.add(stored_coords.clone());
 				}
+				System.out.println("pnlAffichageDRAW.getWidth() : " + pnlAffichageDRAW.getWidth());
 				layerPanel.setBounds( index * (2*pnlAffichageDRAW.getWidth() / (2*myNet.lcCouches.getSize()+1)  ), 0, 2 * ( pnlAffichageDRAW.getWidth() / (2*myNet.lcCouches.getSize()+1) ), panel_height/*(100 * l.layerSize)*/ );
 
 
@@ -1065,4 +1165,59 @@ public class ApplicationWindow {
 
 		pnlAffichageDRAW.updateUI();
 	}
+	
+	public void redrawDemo(JPanel demoPanel, int Index){
+		
+		try {
+			demoPanel.removeAll();
+//			demoPanel.remove(picLabel);
+		}
+		catch (Exception e) {System.out.println("FAILED");};
+				
+		ImageIcon icon = new ImageIcon("../RNA_Projet/src/img/img" + Index + ".png");
+		Image image = icon.getImage();
+		
+		double scale =  (mainFrame.getWidth()*0.8) / icon.getIconWidth();
+		int newX = (int) (icon.getIconWidth() * scale);
+		int newY = (int) (icon.getIconHeight() * scale);
+		Image scaledImage = image.getScaledInstance(newX, newY,  java.awt.Image.SCALE_SMOOTH);
+//		Image newimg = image.getScaledInstance((mainFrame.getWidth()), (mainFrame.getHeight()),  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
+		icon = new ImageIcon(scaledImage);
+		JLabel picLabel = new JLabel(icon);
+		
+		picLabel.setBounds(0, 0, mainFrame.getWidth(), mainFrame.getHeight());
+		JScrollPane imageScroll = new JScrollPane(picLabel);
+		imageScroll.getVerticalScrollBar().setUnitIncrement(18);
+		imageScroll.setVisible(true);
+			
+		demoPanel.add(imageScroll);
+		
+		
+		
+		// Rajouter les boutons de > et <
+		Button btnForward = new Button("Prochain");
+		btnForward.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (demoImgIndex < 5) {
+					demoImgIndex += 1;
+					System.out.println("demoImgIndex " + demoImgIndex);
+					redrawDemo(demoPanel, demoImgIndex);
+				}
+			}
+		});
+		
+		Button btnBackward = new Button("Antérieur");
+		btnBackward.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (demoImgIndex > 0) {
+					demoImgIndex -= 1;
+					System.out.println("demoImgIndex " + demoImgIndex);
+					redrawDemo(demoPanel, demoImgIndex);
+				}
+			}
+		});
+		demoPanel.add(btnBackward);
+		demoPanel.add(btnForward);
+	}
+	
 }
